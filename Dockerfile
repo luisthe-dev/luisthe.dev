@@ -5,8 +5,8 @@ RUN apk add libc6-compat
 WORKDIR /app
 
 # Copy package management files to leverage Docker caching
-COPY package.json package-lock.json
-RUN npm ci
+COPY package.json .
+# RUN npm ci
 
 RUN npm install
 
