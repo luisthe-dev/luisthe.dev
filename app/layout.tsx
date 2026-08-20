@@ -41,16 +41,18 @@ export default function RootLayout({
       )}
       suppressHydrationWarning
     >
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
-        <HeaderComponent />
-        <body className="min-h-full flex flex-col">{children}</body>
-        <FooterComponent />
-      </ThemeProvider>
+      <body className="min-h-full flex flex-col">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <HeaderComponent />
+          {children}
+          <FooterComponent />
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
