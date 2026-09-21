@@ -1,18 +1,5 @@
-import MyIntroComponent from '@/components/me/intro'
-import MyTimelineComponent from '@/components/me/timeline'
-import MyWorkspaceComponent from '@/components/me/workspace'
-import React from 'react'
+import { redirect } from "next/navigation";
 
-type Props = {}
-
-const MePage = (props: Props) => {
-  return (
-    <div>
-        <MyIntroComponent />
-        <MyTimelineComponent />
-        {/* <MyWorkspaceComponent /> */}
-    </div>
-  )
+export default function MePage() {
+  redirect("/about");
 }
-
-export default MePage

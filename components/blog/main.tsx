@@ -1,24 +1,34 @@
 import React from "react";
 import BlogPreviewCard from "./preview";
+import { BlogPost } from "@/lib/types/blog";
 
 type Props = {
-  articles: any[];
-  shouldOverflow?: boolean;
+  articles: BlogPost[];
+  columns?: 2 | 3;
 };
 
-const BlogMainLayoutComponent = ({
+const BlogMainLayoutComponent: React.FC<Props> = ({
   articles,
-  shouldOverflow = false,
-}: Props) => {
-  return (
-    <div className="w-full flex items-center justify-center p-2">
-      <div
-        className={`flex max-md:flex-col ${shouldOverflow ? "flex-nowrap overflow-x-scroll pb-3 items-center justify-start" : "flex-wrap"} w-full gap-3`}
-      >
-        {articles.map((article, articleKey) => (
-          <BlogPreviewCard article={article} key={articleKey} />
-        ))}
+  columns = 3,
+}) => {
+  if (!articles || articles.length === 0) {
+    return (
+      <div className="w-full py-12 text-center text-muted-foreground text-sm">
+        No articles found.
       </div>
+    );
+  }
+
+  const gridCols =
+    columns === 2
+      ? "grid-cols-1 md:grid-cols-2"
+      : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
+
+  return (
+    <div className={`grid ${gridCols} gap-6 w-full`}>
+      {articles.map((article) => (
+        <BlogPreviewCard article={article} key={article.id || article.slug} />
+      ))}
     </div>
   );
 };

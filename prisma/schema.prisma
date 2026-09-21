@@ -1,0 +1,60 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Post {
+  id                  String    @id @default(cuid())
+  slug                String    @unique
+  title               String
+  excerpt             String
+  content             String    @db.Text
+  coverImage          String    @default("/24.jpg")
+  category            String    @default("tech")
+  tags                String[]  @default([])
+  readTime            String    @default("4 min read")
+  status              String    @default("published") // "published" | "draft"
+  featured            Boolean   @default(false)
+  isSyndicated        Boolean   @default(false)
+  syndicationPlatform String?   // "Substack" | "Medium" | "Personal Blog"
+  syndicationUrl      String?
+  syndicatedTime      String?   // e.g. "3 minutes ago" or relative label
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  publishedAt         DateTime? @default(now())
+
+  @@index([slug])
+  @@index([category])
+  @@index([status])
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model TimelineEvent {
+  id          String   @id @default(cuid())
+  year        Int
+  category    String   // "milestone" | "project" | "achievement"
+  title       String
+  description String
+  link        String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model WorkspaceItem {
+  id          String   @id @default(cuid())
+  category    String   // "daily_hardware" | "daily_software" | "favorite_tools" | "software" | "github" | "resources"
+  name        String
+  description String?
+  icon        String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+}
