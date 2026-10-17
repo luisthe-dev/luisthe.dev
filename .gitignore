@@ -1,5 +1,28 @@
-node_modules
+# Dependencies
+node_modules/
+
+# Environment files
 .env
+.env*.local
 .env.local
 .env.production
-.next
+
+# Next.js build output
+.next/
+out/
+build/
+dist/
+.vercel/
+
+# TypeScript cache
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Uploaded media (keep directory, ignore contents)
+public/uploads/*
+!public/uploads/.gitkeep
+
+# OS / logs
+.DS_Store
+*.log
+npm-debug.log*

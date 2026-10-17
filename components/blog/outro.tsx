@@ -1,8 +1,11 @@
-import React from "react";
-import Image from "next/image";
+"use client";
+
+import React, { useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import FacelessCoderLottie from "@/components/ui/faceless-coder-lottie";
+import { ChevronLeft, ChevronRight, Mail, CheckCircle2, Loader2 } from "lucide-react";
 import { GithubIcon, TwitterIcon, LinkedinIcon, SubstackIcon } from "@/components/ui/icons";
+import { toast } from "@/components/ui/toast";
 
 interface AdjacentPost {
   slug: string;
@@ -19,17 +22,93 @@ const SingleBlogOutroCard: React.FC<SingleBlogOutroCardProps> = ({
   previousPost,
   nextPost,
 }) => {
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !email.includes("@")) {
+      toast.warning("Please enter a valid email address");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to subscribe to newsletter");
+      }
+
+      setSubscribed(true);
+      setEmail("");
+      toast.success("Subscribed! You will receive email notifications on new posts.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Subscription failed. Please try again.";
+      toast.error(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="w-full flex flex-col gap-10 mt-16 pt-10 border-t border-border/60">
+      {/* Inline Newsletter Callout */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border/80 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xs">
+        <div className="flex flex-col gap-1.5 text-center sm:text-left">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider self-center sm:self-start">
+            <Mail className="w-3.5 h-3.5" />
+            <span>Newsletter Dispatch</span>
+          </div>
+          <h3 className="text-xl font-bold text-foreground">
+            Enjoyed this breakdown?
+          </h3>
+          <p className="text-xs sm:text-sm text-muted-foreground max-w-md leading-relaxed">
+            Get email notifications when new deep dives on distributed architecture and systems design are published. Zero spam, unsubscribe anytime.
+          </p>
+        </div>
+
+        {subscribed ? (
+          <div className="flex items-center gap-2 p-3 px-5 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-xs sm:text-sm font-semibold">
+            <CheckCircle2 className="w-4 h-4" />
+            <span>You&apos;re subscribed to new article alerts!</span>
+          </div>
+        ) : (
+          <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row w-full sm:w-auto items-center gap-2">
+            <input
+              type="email"
+              placeholder="your-email@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full sm:w-64 px-4 py-2.5 rounded-xl bg-background border border-border text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-primary"
+            />
+            <button
+              type="submit"
+              disabled={submitting || !email.trim()}
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs sm:text-sm font-bold shadow-xs hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer whitespace-nowrap"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Joining...</span>
+                </>
+              ) : (
+                <span>Subscribe</span>
+              )}
+            </button>
+          </form>
+        )}
+      </div>
       {/* Author Bio Card */}
       <div className="p-6 sm:p-8 rounded-2xl bg-card border border-border/70 flex flex-col sm:flex-row items-center sm:items-start gap-5 shadow-xs">
-        <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-muted shrink-0 border border-border">
-          <Image
-            src="/avatar.jpg"
-            alt="Divine Adesiyan"
-            fill
-            className="object-cover"
-          />
+        <div className="shrink-0">
+          <FacelessCoderLottie size="md" className="rounded-2xl" />
         </div>
 
         <div className="flex flex-col items-center sm:items-start text-center sm:text-left gap-2">

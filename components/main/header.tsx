@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, Moon, Sun, X, Feather } from "lucide-react";
+import { Menu, Moon, Sun, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -68,14 +68,6 @@ const HeaderComponent = () => {
                 </Link>
               );
             })}
-            <Link
-              href="/admin"
-              className="text-xs font-medium px-2.5 py-1 rounded-md bg-muted text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-              title="Admin CMS"
-            >
-              <Feather className="w-3 h-3" />
-              <span>Admin</span>
-            </Link>
           </nav>
 
           <div className="h-4 w-[1px] bg-border hidden md:block" />
@@ -125,14 +117,6 @@ const HeaderComponent = () => {
               {link.label}
             </Link>
           ))}
-          <Link
-            href="/admin"
-            onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-2 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-          >
-            <Feather className="w-4 h-4" />
-            <span>Admin Studio</span>
-          </Link>
         </div>
       )}
     </header>

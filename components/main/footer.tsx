@@ -197,12 +197,6 @@ const FooterComponent = () => {
               >
                 About &amp; Resume
               </Link>
-              <Link
-                href="/admin"
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Admin Studio
-              </Link>
             </div>
           </div>
         </div>

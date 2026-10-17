@@ -11,11 +11,10 @@ import {
   Upload,
   Sparkles,
   Loader2,
-  Trash2,
-  ExternalLink,
 } from "lucide-react";
 import RichEditor from "./rich-editor";
 import { BlogPost } from "@/lib/types/blog";
+import { toast } from "@/components/ui/toast";
 
 interface PostFormProps {
   initialData?: Partial<BlogPost>;
@@ -45,6 +44,7 @@ export default function PostForm({
   const [status, setStatus] = useState<"published" | "draft">(
     initialData?.status || "published"
   );
+  const [notifySubscribers, setNotifySubscribers] = useState(true);
 
   // Syndication states
   const [isSyndicated, setIsSyndicated] = useState(initialData?.isSyndicated || false);
@@ -109,8 +109,10 @@ export default function PostForm({
       if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
       setCoverImage(data.url);
-    } catch (err: any) {
-      alert(err.message || "Failed to upload image");
+      toast.success("Cover image uploaded successfully!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to upload image";
+      toast.error(msg);
     } finally {
       setIsUploadingCover(false);
     }
@@ -119,7 +121,7 @@ export default function PostForm({
   // Save / Publish
   const handleSave = async (newStatus?: "published" | "draft") => {
     if (!title.trim()) {
-      alert("Please provide an article title");
+      toast.warning("Please provide an article title");
       return;
     }
 
@@ -138,6 +140,7 @@ export default function PostForm({
       readTime,
       featured,
       status: targetStatus,
+      notifySubscribers: targetStatus === "published" ? notifySubscribers : false,
       isSyndicated,
       syndicationPlatform: isSyndicated ? syndicationPlatform : null,
       syndicationUrl: isSyndicated ? syndicationUrl : null,
@@ -161,18 +164,21 @@ export default function PostForm({
         throw new Error(errorData.error || "Failed to save article");
       }
 
-      setFeedback(
+      const successMsg =
         targetStatus === "published"
           ? "Article published successfully!"
-          : "Draft saved successfully!"
-      );
+          : "Draft saved successfully!";
+
+      setFeedback(successMsg);
+      toast.success(successMsg);
 
       setTimeout(() => {
         router.push("/admin");
         router.refresh();
       }, 800);
-    } catch (err: any) {
-      alert(err.message || "Failed to save article");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to save article";
+      toast.error(msg);
     } finally {
       setIsSaving(false);
     }
@@ -344,6 +350,24 @@ export default function PostForm({
                 </span>
                 <span className="text-[11px] text-muted-foreground">
                   Feature in top 3 showcase on the Home Page
+                </span>
+              </div>
+            </label>
+
+            {/* Notify Subscribers Switch */}
+            <label className="flex items-center gap-3 cursor-pointer pt-1">
+              <input
+                type="checkbox"
+                checked={notifySubscribers}
+                onChange={(e) => setNotifySubscribers(e.target.checked)}
+                className="w-4 h-4 rounded text-primary border-border focus:ring-primary"
+              />
+              <div className="flex flex-col">
+                <span className="text-xs font-semibold text-foreground">
+                  Notify Subscribers
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  Send email dispatch to newsletter audience upon publishing
                 </span>
               </div>
             </label>

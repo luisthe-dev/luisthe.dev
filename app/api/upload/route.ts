@@ -3,6 +3,14 @@ import { isAuthenticated } from "@/lib/auth";
 import fs from "fs/promises";
 import path from "path";
 
+const ALLOWED_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/svg+xml",
+]);
+
 export async function POST(request: NextRequest) {
   try {
     const authed = await isAuthenticated();
@@ -16,6 +24,13 @@ export async function POST(request: NextRequest) {
     if (!file) {
       return NextResponse.json(
         { error: "No file provided" },
+        { status: 400 }
+      );
+    }
+
+    if (!ALLOWED_MIME_TYPES.has(file.type)) {
+      return NextResponse.json(
+        { error: "Invalid file type. Only image files are allowed." },
         { status: 400 }
       );
     }
@@ -43,10 +58,11 @@ export async function POST(request: NextRequest) {
       url: publicUrl,
       fileName,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Upload error:", error);
+    const msg = error instanceof Error ? error.message : "Upload failed";
     return NextResponse.json(
-      { error: error.message || "Upload failed" },
+      { error: msg },
       { status: 500 }
     );
   }

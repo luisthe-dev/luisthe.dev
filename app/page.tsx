@@ -2,7 +2,12 @@ import BlogMainLayoutComponent from "@/components/blog/main";
 import HomeHero from "@/components/main/hero";
 import PostNetworkComponent from "@/components/main/network";
 import NewsletterComponent from "@/components/main/newsletter";
-import { getFeaturedPosts, getSyndicatedPosts } from "@/lib/db/posts";
+import {
+  getFeaturedPosts,
+  getSyndicatedPosts,
+  getSiteSettings,
+  getSocialLinks,
+} from "@/lib/db/posts";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import React from "react";
@@ -10,15 +15,18 @@ import React from "react";
 export const revalidate = 60; // ISR cache revalidation
 
 export default async function HomePage() {
-  const [featuredPosts, syndicatedPosts] = await Promise.all([
-    getFeaturedPosts(),
-    getSyndicatedPosts(),
-  ]);
+  const [featuredPosts, syndicatedPosts, siteSettings, socialLinks] =
+    await Promise.all([
+      getFeaturedPosts(),
+      getSyndicatedPosts(),
+      getSiteSettings(),
+      getSocialLinks(true),
+    ]);
 
   return (
     <div className="flex flex-col items-center justify-start w-full">
-      {/* Bio Hero Section */}
-      <HomeHero />
+      {/* Bio Hero Section with Faceless Animation */}
+      <HomeHero settings={siteSettings} socialLinks={socialLinks} />
 
       {/* Main Content Sections */}
       <main className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 flex flex-col gap-12">

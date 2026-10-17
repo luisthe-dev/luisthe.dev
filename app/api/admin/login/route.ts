@@ -1,21 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isValidPassword, getAuthToken, ADMIN_COOKIE_NAME } from "@/lib/auth";
+import {
+  verifyAdminCredentials,
+  createSessionToken,
+  ADMIN_COOKIE_NAME,
+} from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
-    const { password } = await request.json();
+    const body = await request.json();
+    const { password, email } = body || {};
 
-    if (!isValidPassword(password)) {
+    if (!password) {
       return NextResponse.json(
-        { error: "Invalid password" },
+        { error: "Password is required" },
+        { status: 400 }
+      );
+    }
+
+    const verification = await verifyAdminCredentials(password, email);
+
+    if (!verification.success || !verification.user) {
+      return NextResponse.json(
+        { error: "Invalid credentials" },
         { status: 401 }
       );
     }
 
-    const response = NextResponse.json({ success: true });
+    const token = createSessionToken(verification.user.email);
+    const response = NextResponse.json({
+      success: true,
+      user: {
+        name: verification.user.name,
+        email: verification.user.email,
+      },
+    });
+
     response.cookies.set({
       name: ADMIN_COOKIE_NAME,
-      value: getAuthToken(),
+      value: token,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -25,8 +47,9 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
+    console.error("Login endpoint failure:", error);
     return NextResponse.json(
-      { error: "Login failed" },
+      { error: "Authentication failed" },
       { status: 500 }
     );
   }

@@ -1,6 +1,18 @@
 import prisma from "@/lib/prisma";
-import { BlogPost, TimelineEvent, WorkspaceItem } from "@/lib/types/blog";
+import {
+  BlogPost,
+  TimelineEvent,
+  WorkspaceItem,
+  Competency,
+  SocialLink,
+  SiteSettingsMap,
+  NewsletterSubscriber,
+} from "@/lib/types/blog";
 import { Prisma } from "@prisma/client";
+
+// ==========================================
+// 1. POSTS
+// ==========================================
 
 export async function getPosts(options?: {
   search?: string;
@@ -179,16 +191,265 @@ export async function deletePost(id: string): Promise<boolean> {
   return true;
 }
 
-export async function getTimelineEvents(): Promise<TimelineEvent[]> {
+// ==========================================
+// 2. TIMELINE EVENTS (Experience & Schooling)
+// ==========================================
+
+export async function getTimelineEvents(category?: string): Promise<TimelineEvent[]> {
+  const where: Prisma.TimelineEventWhereInput = {};
+  if (category && category !== "all") {
+    where.category = category;
+  }
+
   const events = await prisma.timelineEvent.findMany({
+    where,
     orderBy: [{ year: "desc" }, { order: "asc" }],
   });
   return events as unknown as TimelineEvent[];
 }
 
-export async function getWorkspaceItems(): Promise<WorkspaceItem[]> {
+export async function createTimelineEvent(
+  data: Partial<TimelineEvent>
+): Promise<TimelineEvent> {
+  const event = await prisma.timelineEvent.create({
+    data: {
+      year: data.year || new Date().getFullYear(),
+      period: data.period || null,
+      category: data.category || "experience",
+      title: data.title || "Role / Milestone",
+      organization: data.organization || null,
+      location: data.location || null,
+      description: data.description || "",
+      link: data.link || null,
+      order: data.order ?? 0,
+    },
+  });
+  return event as unknown as TimelineEvent;
+}
+
+export async function updateTimelineEvent(
+  id: string,
+  data: Partial<TimelineEvent>
+): Promise<TimelineEvent> {
+  const updated = await prisma.timelineEvent.update({
+    where: { id },
+    data: {
+      year: data.year,
+      period: data.period,
+      category: data.category,
+      title: data.title,
+      organization: data.organization,
+      location: data.location,
+      description: data.description,
+      link: data.link,
+      order: data.order,
+    },
+  });
+  return updated as unknown as TimelineEvent;
+}
+
+export async function deleteTimelineEvent(id: string): Promise<boolean> {
+  await prisma.timelineEvent.delete({ where: { id } });
+  return true;
+}
+
+// ==========================================
+// 3. WORKSPACE ITEMS
+// ==========================================
+
+export async function getWorkspaceItems(category?: string): Promise<WorkspaceItem[]> {
+  const where: Prisma.WorkspaceItemWhereInput = {};
+  if (category && category !== "all") {
+    where.category = category;
+  }
+
   const items = await prisma.workspaceItem.findMany({
-    orderBy: { order: "asc" },
+    where,
+    orderBy: [{ category: "asc" }, { order: "asc" }],
   });
   return items as unknown as WorkspaceItem[];
+}
+
+export async function createWorkspaceItem(
+  data: Partial<WorkspaceItem>
+): Promise<WorkspaceItem> {
+  const item = await prisma.workspaceItem.create({
+    data: {
+      category: data.category || "hardware",
+      name: data.name || "Tool",
+      description: data.description || null,
+      url: data.url || null,
+      icon: data.icon || null,
+      order: data.order ?? 0,
+    },
+  });
+  return item as unknown as WorkspaceItem;
+}
+
+export async function updateWorkspaceItem(
+  id: string,
+  data: Partial<WorkspaceItem>
+): Promise<WorkspaceItem> {
+  const updated = await prisma.workspaceItem.update({
+    where: { id },
+    data: {
+      category: data.category,
+      name: data.name,
+      description: data.description,
+      url: data.url,
+      icon: data.icon,
+      order: data.order,
+    },
+  });
+  return updated as unknown as WorkspaceItem;
+}
+
+export async function deleteWorkspaceItem(id: string): Promise<boolean> {
+  await prisma.workspaceItem.delete({ where: { id } });
+  return true;
+}
+
+// ==========================================
+// 4. COMPETENCIES / SKILLS
+// ==========================================
+
+export async function getCompetencies(): Promise<Competency[]> {
+  const items = await prisma.competency.findMany({
+    orderBy: { order: "asc" },
+  });
+  return items as unknown as Competency[];
+}
+
+export async function createCompetency(
+  data: Partial<Competency>
+): Promise<Competency> {
+  const item = await prisma.competency.create({
+    data: {
+      category: data.category || "General",
+      skills: data.skills || [],
+      order: data.order ?? 0,
+    },
+  });
+  return item as unknown as Competency;
+}
+
+export async function updateCompetency(
+  id: string,
+  data: Partial<Competency>
+): Promise<Competency> {
+  const updated = await prisma.competency.update({
+    where: { id },
+    data: {
+      category: data.category,
+      skills: data.skills,
+      order: data.order,
+    },
+  });
+  return updated as unknown as Competency;
+}
+
+export async function deleteCompetency(id: string): Promise<boolean> {
+  await prisma.competency.delete({ where: { id } });
+  return true;
+}
+
+// ==========================================
+// 5. SOCIAL LINKS
+// ==========================================
+
+export async function getSocialLinks(onlyEnabled = false): Promise<SocialLink[]> {
+  const where: Prisma.SocialLinkWhereInput = {};
+  if (onlyEnabled) {
+    where.isEnabled = true;
+  }
+
+  const links = await prisma.socialLink.findMany({
+    where,
+    orderBy: { order: "asc" },
+  });
+  return links as unknown as SocialLink[];
+}
+
+export async function createSocialLink(
+  data: Partial<SocialLink>
+): Promise<SocialLink> {
+  const link = await prisma.socialLink.create({
+    data: {
+      platform: data.platform || "other",
+      label: data.label || "Link",
+      url: data.url || "#",
+      icon: data.icon || data.platform || null,
+      order: data.order ?? 0,
+      isEnabled: data.isEnabled ?? true,
+    },
+  });
+  return link as unknown as SocialLink;
+}
+
+export async function updateSocialLink(
+  id: string,
+  data: Partial<SocialLink>
+): Promise<SocialLink> {
+  const updated = await prisma.socialLink.update({
+    where: { id },
+    data: {
+      platform: data.platform,
+      label: data.label,
+      url: data.url,
+      icon: data.icon,
+      order: data.order,
+      isEnabled: data.isEnabled,
+    },
+  });
+  return updated as unknown as SocialLink;
+}
+
+export async function deleteSocialLink(id: string): Promise<boolean> {
+  await prisma.socialLink.delete({ where: { id } });
+  return true;
+}
+
+// ==========================================
+// 6. SITE SETTINGS
+// ==========================================
+
+export async function getSiteSettings(): Promise<SiteSettingsMap> {
+  const settings = await prisma.siteSetting.findMany();
+  const map: SiteSettingsMap = {};
+  for (const s of settings) {
+    (map as Record<string, string>)[s.key] = s.value;
+  }
+  return map;
+}
+
+export async function updateSiteSettings(
+  settings: Partial<SiteSettingsMap>
+): Promise<SiteSettingsMap> {
+  const entries = Object.entries(settings);
+  for (const [key, value] of entries) {
+    if (value !== undefined) {
+      await prisma.siteSetting.upsert({
+        where: { key },
+        update: { value: String(value) },
+        create: { key, value: String(value) },
+      });
+    }
+  }
+  return getSiteSettings();
+}
+
+// ==========================================
+// 7. NEWSLETTER SUBSCRIBERS
+// ==========================================
+
+export async function getNewsletterSubscribers(): Promise<NewsletterSubscriber[]> {
+  const subscribers = await prisma.newsletterSubscriber.findMany({
+    orderBy: { createdAt: "desc" },
+  });
+  return subscribers as unknown as NewsletterSubscriber[];
+}
+
+export async function deleteNewsletterSubscriber(id: string): Promise<boolean> {
+  await prisma.newsletterSubscriber.delete({ where: { id } });
+  return true;
 }

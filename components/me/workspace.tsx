@@ -1,116 +1,108 @@
 import React from "react";
-import { Laptop, Terminal, Wrench, Layers, GitBranch, BookMarked } from "lucide-react";
+import { WorkspaceItem } from "@/lib/types/blog";
+import { Laptop, Terminal, Wrench, Cloud, ExternalLink } from "lucide-react";
 
-interface WorkspaceSection {
-  title: string;
-  icon: React.ReactNode;
-  items: { name: string; desc: string }[];
+interface MyWorkspaceComponentProps {
+  items?: WorkspaceItem[];
 }
 
-const SECTIONS: WorkspaceSection[] = [
-  {
-    title: "Daily Hardware",
-    icon: <Laptop className="w-4 h-4 text-primary" />,
-    items: [
-      { name: "Apple MacBook Pro M3 Max", desc: "64GB Unified RAM, 1TB SSD" },
-      { name: "LG UltraFine 4K 27-inch", desc: "Color-accurate external display" },
-      { name: "Keychron Q1 Pro Mechanical", desc: "Custom tactile switches" },
-      { name: "Logitech MX Master 3S", desc: "Ergonomic precision mouse" },
-    ],
-  },
-  {
-    title: "Daily Software",
-    icon: <Terminal className="w-4 h-4 text-primary" />,
-    items: [
-      { name: "VS Code & Antigravity IDE", desc: "Custom minimal dark theme" },
-      { name: "Ghostty / WezTerm", desc: "GPU-accelerated terminal" },
-      { name: "Arc Browser", desc: "Workspaces and split browsing" },
-      { name: "Docker & Podman", desc: "Local containerized services" },
-    ],
-  },
-  {
-    title: "Favorite Tools",
-    icon: <Wrench className="w-4 h-4 text-primary" />,
-    items: [
-      { name: "Notion", desc: "Knowledge management & notes" },
-      { name: "Linear", desc: "Streamlined issue tracking" },
-      { name: "Figma", desc: "UI design & wireframing" },
-      { name: "Raycast", desc: "Keyboard-driven macOS command launcher" },
-    ],
-  },
-  {
-    title: "Core Stack & Engineering",
-    icon: <Layers className="w-4 h-4 text-primary" />,
-    items: [
-      { name: "Golang & PHP (Laravel)", desc: "High-throughput microservices & CBA integrations" },
-      { name: "Node.js (NestJS, Express)", desc: "Scalable event-driven backends & APIs" },
-      { name: "TypeScript & React / Next.js", desc: "Type-safe reactive web apps & design systems" },
-      { name: "PostgreSQL & Redis", desc: "Distributed caching, Redlock & worker queues" },
-    ],
-  },
-  {
-    title: "Ventures & Ecosystem",
-    icon: <GitBranch className="w-4 h-4 text-primary" />,
-    items: [
-      { name: "Luis Dev Limited (luisdev.ng)", desc: "Full-stack software engineering & tech consulting agency" },
-      { name: "MyInvite (myinvite.ng)", desc: "High-throughput QR ticketing & event platform" },
-      { name: "Agrobod (agrobod.ng)", desc: "Agritech supply chain transparency & direct delivery" },
-      { name: "luisthe-dev (GitHub)", desc: "Open source contributions, utilities & tools" },
-    ],
-  },
-  {
-    title: "Systems & Architecture",
-    icon: <BookMarked className="w-4 h-4 text-primary" />,
-    items: [
-      { name: "Fintech Systems Design", desc: "Automated reconciliation & vendor failover logic" },
-      { name: "Designing Data-Intensive Applications", desc: "Martin Kleppmann (High-reliability systems)" },
-      { name: "AI Automation & LLM Pipelines", desc: "Agentic systems & intelligent orchestration" },
-    ],
-  },
-];
+export default function MyWorkspaceComponent({
+  items = [],
+}: MyWorkspaceComponentProps) {
+  // Group by category
+  const categories = Array.from(new Set(items.map((i) => i.category)));
 
-const MyWorkspaceComponent = () => {
+  const getCategoryTitle = (cat: string) => {
+    switch (cat.toLowerCase()) {
+      case "hardware":
+        return "Daily Hardware & Setup";
+      case "software":
+        return "Software & Development Tooling";
+      case "cloud_services":
+      case "cloud":
+        return "Cloud Infrastructure & Services";
+      default:
+        return cat.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    }
+  };
+
+  const getCategoryIcon = (cat: string) => {
+    switch (cat.toLowerCase()) {
+      case "hardware":
+        return <Laptop className="w-4 h-4 text-primary" />;
+      case "software":
+        return <Terminal className="w-4 h-4 text-emerald-500" />;
+      case "cloud_services":
+      case "cloud":
+        return <Cloud className="w-4 h-4 text-cyan-500" />;
+      default:
+        return <Wrench className="w-4 h-4 text-amber-500" />;
+    }
+  };
+
   return (
-    <section className="w-full py-12">
-      <div className="flex flex-col gap-2 mb-10">
-        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-          Uses / Workspace
+    <section className="w-full pb-12 flex flex-col gap-6">
+      <div>
+        <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+          Workspace, Setup &amp; Uses
         </h2>
-        <p className="text-sm text-muted-foreground">
-          A living directory of the hardware, software, and gear I rely on daily.
+        <p className="text-sm text-muted-foreground mt-1">
+          Hardware, operating software, and developer tools powering my daily engineering workflows.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {SECTIONS.map((section) => (
-          <div
-            key={section.title}
-            className="p-6 rounded-2xl bg-card border border-border/70 shadow-2xs flex flex-col gap-4"
-          >
-            <div className="flex items-center gap-2 border-b border-border/60 pb-3">
-              {section.icon}
-              <h3 className="font-bold text-sm text-foreground">
-                {section.title}
-              </h3>
-            </div>
+        {categories.map((cat) => {
+          const categoryItems = items.filter((i) => i.category === cat);
+          return (
+            <div
+              key={cat}
+              className="p-6 rounded-2xl bg-card border border-border/80 flex flex-col gap-4 shadow-2xs hover:border-border transition-colors"
+            >
+              <div className="flex items-center gap-2 pb-3 border-b border-border/50">
+                {getCategoryIcon(cat)}
+                <h3 className="font-bold text-sm text-foreground">
+                  {getCategoryTitle(cat)}
+                </h3>
+              </div>
 
-            <div className="flex flex-col gap-3">
-              {section.items.map((item) => (
-                <div key={item.name} className="flex flex-col">
-                  <span className="font-semibold text-xs text-foreground">
-                    {item.name}
-                  </span>
-                  <span className="text-[11px] text-muted-foreground">
-                    {item.desc}
-                  </span>
-                </div>
-              ))}
+              <div className="flex flex-col gap-3">
+                {categoryItems.map((item) => (
+                  <div key={item.id} className="flex flex-col gap-0.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-semibold text-xs text-foreground">
+                        {item.name}
+                      </span>
+                      {item.url && (
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-muted-foreground hover:text-primary transition-colors"
+                          title="Learn more"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
+                    {item.description && (
+                      <span className="text-[11px] text-muted-foreground leading-relaxed">
+                        {item.description}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
+          );
+        })}
+
+        {items.length === 0 && (
+          <div className="col-span-full text-sm text-muted-foreground italic py-6">
+            No workspace items configured.
           </div>
-        ))}
+        )}
       </div>
     </section>
   );
-};
-
-export default MyWorkspaceComponent;
+}

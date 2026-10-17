@@ -7,6 +7,71 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String   @default("Divine Adesiyan")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SocialLink {
+  id        String   @id @default(cuid())
+  platform  String   // "github" | "linkedin" | "x" | "substack" | "medium" | "email"
+  label     String
+  url       String
+  icon      String?
+  order     Int      @default(0)
+  isEnabled Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Competency {
+  id        String   @id @default(cuid())
+  category  String   // "Backend Engineering", "Frontend & Mobile", "Databases & Caching", etc.
+  skills    String[]
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TimelineEvent {
+  id           String   @id @default(cuid())
+  year         Int
+  period       String?  // e.g. "Jul 2023 – Dec 2025" or "2018 – 2023"
+  category     String   // "experience" | "schooling" | "certification" | "leadership" | "milestone"
+  title        String   // Job title or Degree / Certification
+  organization String?  // Company or Institution name
+  location     String?  // e.g. "Lagos, Nigeria"
+  description  String   @db.Text
+  link         String?
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model WorkspaceItem {
+  id          String   @id @default(cuid())
+  category    String   // "hardware" | "software" | "daily_tools" | "cloud_services"
+  name        String
+  description String?
+  url         String?
+  icon        String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model Post {
   id                  String    @id @default(cuid())
   slug                String    @unique
@@ -14,7 +79,7 @@ model Post {
   excerpt             String
   content             String    @db.Text
   coverImage          String    @default("/24.jpg")
-  category            String    @default("tech")
+  category            String    @default("Tech")
   tags                String[]  @default([])
   readTime            String    @default("4 min read")
   status              String    @default("published") // "published" | "draft"
@@ -22,7 +87,7 @@ model Post {
   isSyndicated        Boolean   @default(false)
   syndicationPlatform String?   // "Substack" | "Medium" | "Personal Blog"
   syndicationUrl      String?
-  syndicatedTime      String?   // e.g. "3 minutes ago" or relative label
+  syndicatedTime      String?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
   publishedAt         DateTime? @default(now())
@@ -36,25 +101,4 @@ model NewsletterSubscriber {
   id        String   @id @default(cuid())
   email     String   @unique
   createdAt DateTime @default(now())
-}
-
-model TimelineEvent {
-  id          String   @id @default(cuid())
-  year        Int
-  category    String   // "milestone" | "project" | "achievement"
-  title       String
-  description String
-  link        String?
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
-}
-
-model WorkspaceItem {
-  id          String   @id @default(cuid())
-  category    String   // "daily_hardware" | "daily_software" | "favorite_tools" | "software" | "github" | "resources"
-  name        String
-  description String?
-  icon        String?
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
 }

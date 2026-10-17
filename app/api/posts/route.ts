@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPosts, createPost } from "@/lib/db/posts";
 import { isAuthenticated } from "@/lib/auth";
+import { sendPostNotificationEmail } from "@/lib/mail";
 
 export async function GET(request: NextRequest) {
   try {
@@ -65,11 +66,19 @@ export async function POST(request: NextRequest) {
       slug,
     });
 
+    if (newPost.status === "published" && body.notifySubscribers !== false) {
+      const origin = request.headers.get("origin") || undefined;
+      sendPostNotificationEmail({ post: newPost, origin }).catch((err) =>
+        console.error("Failed to notify subscribers on new post:", err)
+      );
+    }
+
     return NextResponse.json(newPost, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Failed to create post:", error);
+    const msg = error instanceof Error ? error.message : "Failed to create post";
     return NextResponse.json(
-      { error: error.message || "Failed to create post" },
+      { error: msg },
       { status: 500 }
     );
   }

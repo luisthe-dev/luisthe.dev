@@ -1,15 +1,502 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("Seeding database with Divine Adesiyan's profile and articles...");
+  console.log("Seeding database with Divine Adesiyan's authentic profile and CV data...");
 
-  // Clear existing records
+  // 1. Seed or update Admin User
+  const adminEmail = "divinegiftadesiyan@gmail.com";
+  const rawAdminPassword = process.env.ADMIN_PASSWORD || "admin";
+  const passwordHash = await bcrypt.hash(rawAdminPassword, 10);
+
+  await prisma.adminUser.upsert({
+    where: { email: adminEmail },
+    update: {
+      passwordHash,
+      name: "Divine Adesiyan",
+    },
+    create: {
+      email: adminEmail,
+      passwordHash,
+      name: "Divine Adesiyan",
+    },
+  });
+
+  // 2. Clear existing records for full fresh sync
   await prisma.post.deleteMany({});
   await prisma.timelineEvent.deleteMany({});
   await prisma.workspaceItem.deleteMany({});
+  await prisma.competency.deleteMany({});
+  await prisma.socialLink.deleteMany({});
+  await prisma.siteSetting.deleteMany({});
 
+  // 3. Centralized Site Settings (Editable via Admin)
+  const siteSettings = [
+    {
+      key: "hero_headline",
+      value: "Divine Adesiyan",
+    },
+    {
+      key: "hero_badge_text",
+      value: "Co-Founder @ MyInvite • Technical Product Manager @ Fieldbase • Senior Backend Lead",
+    },
+    {
+      key: "hero_subheadline",
+      value: "Technical Product Manager, Systems Architect & Full Stack Engineer",
+    },
+    {
+      key: "hero_bio",
+      value: "8+ years of engineering leadership building resilient systems across high-throughput fintech, edtech, e-commerce, and enterprise SaaS. Specializing in high-throughput microservices, Redis caching topologies, and distributed architectures.",
+    },
+    {
+      key: "about_headline",
+      value: "Architecting resilient systems, leading cross-functional squads, and scaling distributed platforms.",
+    },
+    {
+      key: "about_bio",
+      value: "Technical Product and Project Manager with 8+ years of cross-functional experience steering product strategy, technical architecture, and end-to-end execution across high-throughput fintech, edtech, e-commerce, and enterprise SaaS platforms. Proven track record bridging technical engineering depth with product discovery, PRD authoring, backlog prioritization, and iterative user-driven rollouts. Adept at orchestrating Agile squads to launch resilient microservices architectures, scale transactional engines to 50k+ active users, reduce API response times by 70%, and optimize operational throughput while aligning engineering velocity with measurable business KPIs.",
+    },
+    {
+      key: "smtp_host",
+      value: "",
+    },
+    {
+      key: "smtp_port",
+      value: "587",
+    },
+    {
+      key: "smtp_user",
+      value: "",
+    },
+    {
+      key: "smtp_pass",
+      value: "",
+    },
+    {
+      key: "smtp_from",
+      value: "Divine Adesiyan <divinegiftadesiyan@gmail.com>",
+    },
+    {
+      key: "smtp_secure",
+      value: "false",
+    },
+  ];
+
+  for (const setting of siteSettings) {
+    await prisma.siteSetting.create({ data: setting });
+  }
+
+  // 4. Verified Social Links (from CV)
+  const socialLinks = [
+    {
+      platform: "github",
+      label: "GitHub",
+      url: "https://github.com/luisthe-dev",
+      icon: "github",
+      order: 1,
+      isEnabled: true,
+    },
+    {
+      platform: "linkedin",
+      label: "LinkedIn",
+      url: "https://linkedin.com/in/divinegiftadesiyan",
+      icon: "linkedin",
+      order: 2,
+      isEnabled: true,
+    },
+    {
+      platform: "x",
+      label: "X (Twitter)",
+      url: "https://x.com/luisthe___dev",
+      icon: "twitter",
+      order: 3,
+      isEnabled: true,
+    },
+    {
+      platform: "substack",
+      label: "Substack",
+      url: "https://substack.com/@luisthedev",
+      icon: "substack",
+      order: 4,
+      isEnabled: true,
+    },
+    {
+      platform: "medium",
+      label: "Medium",
+      url: "https://medium.com/@luisthedev",
+      icon: "medium",
+      order: 5,
+      isEnabled: true,
+    },
+    {
+      platform: "email",
+      label: "Email",
+      url: "mailto:divinegiftadesiyan@gmail.com",
+      icon: "mail",
+      order: 6,
+      isEnabled: true,
+    },
+  ];
+
+  for (const link of socialLinks) {
+    await prisma.socialLink.create({ data: link });
+  }
+
+  // 5. Core Competencies & Technical Skills (from CV)
+  const competencies = [
+    {
+      category: "Backend Engineering",
+      skills: [
+        "PHP (Laravel, Symfony, CodeIgniter)",
+        "Golang",
+        "Node.js (Express.js, NestJS)",
+        "RESTful APIs",
+        "Microservices Architecture",
+        "gRPC",
+      ],
+      order: 1,
+    },
+    {
+      category: "Frontend & Mobile",
+      skills: [
+        "React.js",
+        "React Native",
+        "TypeScript",
+        "Next.js",
+        "Redux",
+        "Vue.js",
+        "Tailwind CSS",
+      ],
+      order: 2,
+    },
+    {
+      category: "Databases & Caching",
+      skills: [
+        "MySQL",
+        "PostgreSQL",
+        "Redis (Caching, Queues, Crons, Background Workers)",
+        "Database Indexing & Query Tuning",
+      ],
+      order: 3,
+    },
+    {
+      category: "Cloud & DevOps",
+      skills: [
+        "AWS Cloud",
+        "Microsoft Azure",
+        "Huawei Cloud",
+        "Docker & Containerization",
+        "CI/CD Pipelines",
+        "Git Workflows",
+      ],
+      order: 4,
+    },
+    {
+      category: "Product Management & Systems Architecture",
+      skills: [
+        "System Design & High Availability",
+        "Agile / Scrum Frameworks",
+        "Product Lifecycle Management (PLM)",
+        "PRD & Feature Specifications",
+        "Backlog Prioritization & Sprint Planning",
+        "Team Leadership & Mentorship",
+      ],
+      order: 5,
+    },
+  ];
+
+  for (const comp of competencies) {
+    await prisma.competency.create({ data: comp });
+  }
+
+  // 6. Timeline Events: Experience, Education, and Certifications from CVs
+  const timelineEvents = [
+    // --- Experience / Leadership ---
+    {
+      year: 2026,
+      period: "Apr 2026 – Present",
+      category: "experience",
+      title: "Co-Founder & Head of Product",
+      organization: "MyInvite",
+      location: "Lagos, Nigeria",
+      description:
+        "Define product vision, end-to-end user flows, and milestone roadmap for the MyInvite event ticketing and registration platform. Lead cross-functional execution aligning technical system architecture with organizer referral economics and organic user acquisition strategies.",
+      link: "https://myinvite.ng",
+      order: 1,
+    },
+    {
+      year: 2025,
+      period: "Dec 2025 – Present",
+      category: "experience",
+      title: "Technical Product Manager / Backend Engineer",
+      organization: "Fieldbase Services Limited",
+      location: "Lagos, Nigeria",
+      description:
+        "Oversee technical delivery and architecture for core service modules, ensuring alignment with project timelines and quality standards. Coordinate cross-functional technical workflows to optimize infrastructure performance, operational reliability, and sprint velocity.",
+      link: null,
+      order: 2,
+    },
+    {
+      year: 2023,
+      period: "Jul 2023 – Dec 2025",
+      category: "experience",
+      title: "Senior Backend Engineer & Product Lead",
+      organization: "Konga Group / Konga Online Shopping",
+      location: "Lagos, Nigeria",
+      description:
+        "Engineered and optimized core backend microservices using Golang, PHP (Laravel), Express.js, and NestJS, achieving a 30% improvement in API performance for 50k+ active users. Rebuilt and restructured enterprise Bill Payment engine, deployed to Core Banking Application (CBA). Architected intelligent vendor auto-switching logic (Sochitel, Baxi) with Redis circuit breakers for near-zero downtime. Led end-to-end design and rollout of Savings Platform and automated Transaction Scheduler.",
+      link: "https://konga.com",
+      order: 3,
+    },
+    {
+      year: 2023,
+      period: "Apr 2023 – Sept 2023",
+      category: "experience",
+      title: "Full Stack Engineer",
+      organization: "Hostville Nigeria",
+      location: "Lagos, Nigeria",
+      description:
+        "Spearheaded platform overhaul for Edclearn (EdTech), delivering 99% uptime with Symfony, CodeIgniter, and Laravel. Designed and optimized RESTful APIs backed by Redis caching and background crons on AWS for fast data retrieval and async execution.",
+      link: null,
+      order: 4,
+    },
+    {
+      year: 2021,
+      period: "Nov 2021 – Dec 2022",
+      category: "experience",
+      title: "Lead Frontend Engineer (React)",
+      organization: "The Connected Awards & Techtrend Africa",
+      location: "Ibadan, Nigeria",
+      description:
+        "Architected inaugural version of tech recognition platform, engineering public nomination workflows, voting modules, and real-time winner dashboards. Integrated dynamic REST APIs and implemented technical SEO for maximum reach.",
+      link: null,
+      order: 5,
+    },
+    {
+      year: 2022,
+      period: "Jul 2022 – Nov 2022",
+      category: "experience",
+      title: "React JS Developer",
+      organization: "Newage Solutions",
+      location: "Ibadan, Nigeria",
+      description:
+        "Contributed to Respay (Real Estate SaaS platform), automating rent payments, fee processing, and service dispatch workflows. Built responsive UI components with Redux and Tailwind CSS, reducing page load latency by 20%.",
+      link: null,
+      order: 6,
+    },
+    {
+      year: 2022,
+      period: "Feb 2022 – Aug 2022",
+      category: "experience",
+      title: "Contract React Native Developer & Sub-Team Lead",
+      organization: "Famesify",
+      location: "Abuja, Nigeria",
+      description:
+        "Built cross-platform mobile features using React Native and Firebase, implementing real-time data sync and secure authentication. Led a development sub-team in Agile sprints while applying mobile SEO and app store optimization.",
+      link: null,
+      order: 7,
+    },
+    {
+      year: 2021,
+      period: "Mar 2021 – Jul 2022",
+      category: "experience",
+      title: "Senior PHP Backend Developer",
+      organization: "Renager & Xcityworld",
+      location: "Lagos / Ilorin, Nigeria",
+      description:
+        "Architected scalable Laravel APIs, background worker queues, and Redis caching layers for high-throughput enterprise systems. Mentored junior engineers and bootcamp cohorts in software architecture best practices and clean code guidelines.",
+      link: null,
+      order: 8,
+    },
+    {
+      year: 2020,
+      period: "Oct 2020 – Feb 2021",
+      category: "experience",
+      title: "Full Stack Web Developer",
+      organization: "KPIE Industries",
+      location: "Lagos, Nigeria",
+      description:
+        "Engineered core backend microservices for AMATnow (food delivery ecosystem), handling order dispatch, real-time payment processing, and driver routing. Boosted application response speeds by 25% utilizing Redis caching and async background workers.",
+      link: null,
+      order: 9,
+    },
+    {
+      year: 2020,
+      period: "Mar 2020 – Jun 2022",
+      category: "experience",
+      title: "Contract Full Stack Web Developer",
+      organization: "Flinoid Texvo",
+      location: "Nigeria",
+      description:
+        "Built tailored, high-performance web solutions using Laravel and PHP while managing Git workflows across development squads.",
+      link: null,
+      order: 10,
+    },
+    {
+      year: 2017,
+      period: "Jan 2017 – Mar 2020",
+      category: "experience",
+      title: "Full Stack Web Developer",
+      organization: "Codeforum",
+      location: "Ibadan, Nigeria",
+      description:
+        "Promoted after completing internship; developed web interfaces and backend services using PHP, JavaScript, and Laravel. Standardized internal Git version control practices and mentored junior development cohorts.",
+      link: null,
+      order: 11,
+    },
+
+    // --- Education / Schooling ---
+    {
+      year: 2026,
+      period: "Oct 2026 – Oct 2027",
+      category: "schooling",
+      title: "Master of Business Administration (MBA)",
+      organization: "Rome Business School",
+      location: "Rome / Online",
+      description:
+        "Advanced executive leadership, strategic operations, and technology management.",
+      link: null,
+      order: 1,
+    },
+    {
+      year: 2018,
+      period: "2018 – 2023",
+      category: "schooling",
+      title: "Bachelor of Technology (B.Tech), Computer Science & Education",
+      organization: "University of Ilorin",
+      location: "Ilorin, Nigeria",
+      description:
+        "Core computer science curriculum including distributed algorithms, data structures, database design, software engineering methodologies, and educational technology.",
+      link: null,
+      order: 2,
+    },
+    {
+      year: 2016,
+      period: "2016 – 2018",
+      category: "schooling",
+      title: "National Diploma (ND), Computer Science",
+      organization: "Federal School of Statistics",
+      location: "Nigeria",
+      description:
+        "Foundational training in computer systems, programming fundamentals, numerical analysis, and statistics.",
+      link: null,
+      order: 3,
+    },
+
+    // --- Certifications ---
+    {
+      year: 2022,
+      period: "Certified",
+      category: "certification",
+      title: "SQL Fundamentals Certification",
+      organization: "Sololearn",
+      location: "Online",
+      description: "Advanced relational query design, subqueries, indexing, and joins.",
+      link: null,
+      order: 1,
+    },
+    {
+      year: 2022,
+      period: "Certified",
+      category: "certification",
+      title: "PHP Certification",
+      organization: "Sololearn",
+      location: "Online",
+      description: "Object-oriented PHP, security best practices, and backend web development.",
+      link: null,
+      order: 2,
+    },
+    {
+      year: 2021,
+      period: "Certified",
+      category: "certification",
+      title: "HTML & CSS Fundamentals",
+      organization: "Sololearn",
+      location: "Online",
+      description: "Semantic HTML5, responsive layout architecture, and CSS styling.",
+      link: null,
+      order: 3,
+    },
+  ];
+
+  for (const event of timelineEvents) {
+    await prisma.timelineEvent.create({ data: event });
+  }
+
+  // 7. Workspace Items
+  const workspaceItems = [
+    {
+      category: "hardware",
+      name: "Apple MacBook Pro M-Series",
+      description: "Configured for local Docker microservices and high-throughput compilation",
+      icon: "laptop",
+      order: 1,
+    },
+    {
+      category: "hardware",
+      name: "UltraWide Dual Monitor Display",
+      description: "High-density screen real estate for concurrent code inspection and metrics monitoring",
+      icon: "monitor",
+      order: 2,
+    },
+    {
+      category: "hardware",
+      name: "Mechanical Keyboard & Ergonomic Peripherals",
+      description: "Tactile key switches calibrated for long architecture and coding sessions",
+      icon: "keyboard",
+      order: 3,
+    },
+    {
+      category: "software",
+      name: "VS Code / Cursor & Warp Terminal",
+      description: "Core IDE environment tuned with strict TypeScript, Golang, and PHP extensions",
+      icon: "terminal",
+      order: 1,
+    },
+    {
+      category: "software",
+      name: "Postman, Bruno & Insomnia",
+      description: "API testing, automated contract testing, and webhook simulation",
+      icon: "send",
+      order: 2,
+    },
+    {
+      category: "software",
+      name: "TablePlus & Redis Insight",
+      description: "Direct GUI inspection for PostgreSQL, MySQL, and distributed Redis key spaces",
+      icon: "database",
+      order: 3,
+    },
+    {
+      category: "cloud_services",
+      name: "AWS, Azure & Huawei Cloud",
+      description: "Multi-cloud hosting, container orchestration, and serverless compute",
+      icon: "cloud",
+      order: 1,
+    },
+    {
+      category: "cloud_services",
+      name: "Docker Containerization & GitHub Actions",
+      description: "Reproducible microservice builds, automated testing, and zero-downtime deployment",
+      icon: "layers",
+      order: 2,
+    },
+    {
+      category: "cloud_services",
+      name: "Neon PostgreSQL & Upstash Redis",
+      description: "Serverless relational storage with automated pooling and distributed low-latency caching",
+      icon: "database",
+      order: 3,
+    },
+  ];
+
+  for (const item of workspaceItems) {
+    await prisma.workspaceItem.create({ data: item });
+  }
+
+  // 8. Published High-Impact Articles
   const articles = [
     {
       slug: "architecting-intelligent-vendor-failover-fintech",
@@ -17,26 +504,27 @@ async function main() {
       excerpt:
         "How we designed zero-downtime automated failover routing between telecom and bill payment providers at Konga, maximizing transaction success rates for 50k+ active users.",
       content: `
-<p>In digital financial infrastructure, provider unreliability is an inevitability. When processing millions in utility payments, airtime, and data recharges, vendor downtime directly erodes customer trust and transaction throughput.</p>
+In digital financial infrastructure, provider unreliability is an inevitability. When processing millions in utility payments, airtime, and data recharges, vendor downtime directly erodes customer trust and transaction throughput.
 
-<h2>The Multi-Provider Routing Dilemma</h2>
-<p>Integrating tier-1 telco aggregators like Sochitel and Baxi provided cost-competitive routing, but manual failovers during latency spikes or API degraded states proved unsustainable. We needed an autonomous engine capable of assessing vendor health in real-time.</p>
+## The Multi-Provider Routing Dilemma
 
-<blockquote>
-"Resilience in financial systems isn't achieved by hoping upstream vendors never fail; it is achieved by architecting for graceful, automated degradation and instant recovery."
-</blockquote>
+Integrating tier-1 telco aggregators like Sochitel and Baxi provided cost-competitive routing, but manual failovers during latency spikes or API degraded states proved unsustainable. We needed an autonomous engine capable of assessing vendor health in real-time.
 
-<h2>Circuit Breakers and Dynamic Health Scoring</h2>
-<p>We engineered a state-driven vendor routing middleware backed by Redis. Providers are evaluated across sliding 60-second windows measuring failure rates, response times, and HTTP status codes.</p>
+> "Resilience in financial systems isn't achieved by hoping upstream vendors never fail; it is achieved by architecting for graceful, automated degradation and instant recovery."
 
-<pre><code class="language-typescript">interface VendorHealthScore {
+## Circuit Breakers and Dynamic Health Scoring
+
+We engineered a state-driven vendor routing middleware backed by Redis. Providers are evaluated across sliding 60-second windows measuring failure rates, response times, and HTTP status codes.
+
+\`\`\`typescript
+interface VendorHealthScore {
   vendorId: string;
   successRate: number;
   averageLatencyMs: number;
   circuitState: "CLOSED" | "OPEN" | "HALF_OPEN";
 }
 
-async function resolveOptimalVendor(category: string): Promise&lt;string&gt; {
+async function resolveOptimalVendor(category: string): Promise<string> {
   const vendors = await redis.zrevrangebyscore(\`vendors:health:\${category}\`, "+inf", "-inf");
   for (const vendorId of vendors) {
     const isAvailable = await checkCircuitStatus(vendorId);
@@ -44,17 +532,13 @@ async function resolveOptimalVendor(category: string): Promise&lt;string&gt; {
   }
   throw new Error("All vendor gateways currently unavailable");
 }
-</code></pre>
+\`\`\`
 
-<p>When an active vendor's error threshold exceeds 5%, the circuit breaker trips to OPEN, automatically diverting inflight transactions to secondary failover nodes without dropping user requests.</p>
+When an active vendor's error threshold exceeds 5%, the circuit breaker trips to OPEN, automatically diverting inflight transactions to secondary failover nodes without dropping user requests.
 
-<figure>
-  <img src="/24.jpg" alt="Fintech transaction routing architecture" class="rounded-xl w-full object-cover max-h-96 shadow-md my-4" />
-  <figcaption class="text-xs text-muted-foreground text-center mt-2">Vendor auto-switching topology with distributed circuit breakers and Redis health tracking</figcaption>
-</figure>
+## Impact on Operational Metrics
 
-<h2>Impact on Operational Metrics</h2>
-<p>By coupling Golang microservices with Redis caching and asynchronous reconciliation queues, we achieved a 30% improvement in API response times and maintained a 99.9% transaction success rate across peak shopping campaigns.</p>
+By coupling Golang microservices with Redis caching and asynchronous reconciliation queues, we achieved a 30% improvement in API response times and maintained a 99.9% transaction success rate across peak shopping campaigns.
       `.trim(),
       coverImage: "/24.jpg",
       category: "Tech",
@@ -72,18 +556,18 @@ async function resolveOptimalVendor(category: string): Promise&lt;string&gt; {
       excerpt:
         "A practical guide to decoupling transactional writes from asynchronous batch jobs, reducing latency and infrastructure overhead in enterprise microservices.",
       content: `
-<p>High-traffic enterprise applications often struggle with write amplification and blocking I/O when synchronous operations attempt to handle notifications, PDF receipts, and third-party webhooks concurrently.</p>
+High-traffic enterprise applications often struggle with write amplification and blocking I/O when synchronous operations attempt to handle notifications, PDF receipts, and third-party webhooks concurrently.
 
-<h2>Decoupling the Critical Request Path</h2>
-<p>During our backend restructuring at Konga, we segregated synchronous transaction verification from downstream async tasks. When a customer executes a bill payment, the HTTP request cycle only commits the core database state and enqueues a lightweight job payload into Redis.</p>
+## Decoupling the Critical Request Path
 
-<blockquote>
-"If an operation does not need to happen before returning an HTTP 200 to the client, it belongs on a background queue."
-</blockquote>
+During our backend restructuring at Konga, we segregated synchronous transaction verification from downstream async tasks. When a customer executes a bill payment, the HTTP request cycle only commits the core database state and enqueues a lightweight job payload into Redis.
 
-<p>Here is how our transaction scheduler coordinates asynchronous workers:</p>
+> "If an operation does not need to happen before returning an HTTP 200 to the client, it belongs on a background queue."
 
-<pre><code class="language-typescript">import { Queue, Worker } from "bullmq";
+Here is how our transaction scheduler coordinates asynchronous workers:
+
+\`\`\`typescript
+import { Queue, Worker } from "bullmq";
 
 export const transactionQueue = new Queue("transactions", {
   connection: redisConnection,
@@ -98,390 +582,75 @@ export const worker = new Worker(
   },
   { concurrency: 25 }
 );
-</code></pre>
+\`\`\`
 
-<figure>
-  <img src="/25.jpg" alt="Redis queue worker architecture" class="rounded-xl w-full object-cover max-h-96 shadow-md my-4" />
-  <figcaption class="text-xs text-muted-foreground text-center mt-2">Distributed job queuing architecture deployed on containerized multi-cloud infrastructure</figcaption>
-</figure>
+## Results and Takeaways
 
-<h2>Results in Production</h2>
-<p>Offloading secondary computations to dedicated worker pools deployed on Azure and Huawei Cloud reduced CPU starvation on main API instances and slashed p95 latencies by more than half.</p>
+Decoupling the critical path reduced peak response latency from 1.8s down to 320ms, while enabling our background workers to absorb traffic bursts smoothly without overwhelming downstream services.
       `.trim(),
-      coverImage: "/25.jpg",
+      coverImage: "/24.jpg",
       category: "Architecture",
-      tags: ["Redis", "Architecture", "Docker", "Node.js"],
+      tags: ["Redis", "Distributed Systems", "Performance", "Queues"],
       readTime: "5 min read",
       status: "published",
       featured: true,
       isSyndicated: false,
-      createdAt: new Date("2024-11-08T14:00:00Z"),
-      publishedAt: new Date("2024-11-08T14:00:00Z"),
+      createdAt: new Date("2024-10-20T14:30:00Z"),
+      publishedAt: new Date("2024-10-20T14:30:00Z"),
     },
     {
-      slug: "scaling-fintech-engineering-lessons-learned",
-      title: "Lessons from 8+ Years Building Scalable African Fintech & Edtech",
+      slug: "building-myinvite-qr-ticketing-architecture",
+      title: "Engineering MyInvite: QR Ticketing and Offline Verification at Scale",
       excerpt:
-        "Reflections from scaling payments at Konga, building real estate payment engines at Respay, and delivering edtech platforms under high uptime SLAs.",
+        "Designing cryptographic offline-verifiable QR passes, high-concurrency seat reservation locks, and organizer referral economics for live events.",
       content: `
-<p>Over the last eight years, building software across Nigeria and international ecosystems has taught me that architectural elegance must always serve operational reliability. Whether building food delivery dispatch at AMATnow, real estate rent automation at Respay, or core payment engines at Konga, the fundamentals remain consistent.</p>
+When attendees queue up outside a live concert or conference, cellular networks frequently saturate. If your event ticketing platform relies exclusively on synchronous internet pings to validate digital tickets at the turnstiles, long queues and frustrated attendees are guaranteed.
 
-<h2>1. Treat Data Contracts as Immutable</h2>
-<p>Breaking changes in internal microservice APIs propagate failures downstream. Always version endpoints, enforce strict typing with TypeScript and Protocol Buffers, and implement schema validation at system boundaries.</p>
+## Cryptographically Signed Offline Passes
 
-<h2>2. Observability Over Intuition</h2>
-<p>Logs are necessary, but structured telemetry, distributed tracing, and real-time alert thresholds identify silent failures before customers report them.</p>
+At MyInvite, we solved this problem by architecting asymmetric HMAC-signed QR tokens. The gate scanner caches the organizer's public key locally on device. When a ticket QR code is presented, the scanner validates the signature offline in under 40 milliseconds.
 
-<blockquote>
-"Software is never finished; it evolves through constant iteration, measurement, and ruthless simplification."
-</blockquote>
+\`\`\`typescript
+import { createHmac } from "crypto";
 
-<figure>
-  <img src="/32.jpg" alt="Software development workspace" class="rounded-xl w-full object-cover max-h-96 shadow-md my-4" />
-  <figcaption class="text-xs text-muted-foreground text-center mt-2">Continuous delivery and architectural refactoring across distributed engineering teams</figcaption>
-</figure>
+export function generateEventTicketPass(ticketId: string, eventId: string, secret: string) {
+  const payload = \`\${ticketId}:\${eventId}:\${Date.now()}\`;
+  const signature = createHmac("sha256", secret).update(payload).digest("hex");
+  return \`\${payload}.\${signature}\`;
+}
+\`\`\`
+
+## High-Concurrency Distributed Reservation Locks
+
+During high-demand ticket drops, thousands of users compete for limited tier allocations within seconds. To prevent overbooking, we implemented atomic Redis Redlock distributed locks with 10-minute hold expirations.
+
+This architecture ensures zero double-allocations while giving purchasers adequate time to complete checkout seamlessly.
       `.trim(),
-      coverImage: "/32.jpg",
-      category: "Personal Blog",
-      tags: ["Leadership", "Fintech", "Career", "Mentorship"],
+      coverImage: "/24.jpg",
+      category: "Product",
+      tags: ["System Design", "Event Tech", "Security", "Crypto"],
       readTime: "7 min read",
       status: "published",
       featured: true,
       isSyndicated: true,
       syndicationPlatform: "Substack",
       syndicationUrl: "https://substack.com/@luisthedev",
-      syndicatedTime: "3 minutes ago",
-      createdAt: new Date("2024-10-30T16:00:00Z"),
-      publishedAt: new Date("2024-10-30T16:00:00Z"),
-    },
-    {
-      slug: "rebuilding-enterprise-bill-payment-engine",
-      title: "Rebuilding an Enterprise Bill Payment Engine for Core Banking Integration",
-      excerpt:
-        "How we restructured our payment processing core to interface directly with Core Banking Applications (CBA) with automated reconciliation.",
-      content: `
-<p>Enterprise bill payment platforms require stringent reconciliation mechanisms. Integrating directly with Core Banking Applications (CBA) demanded automated ledger balancing, idempotency keys, and scheduled batch reconciliation.</p>
-<p>We achieved zero manual reconciliation discrepancies across 50,000+ monthly active users through structured event logging and automated audit trails.</p>
-      `.trim(),
-      coverImage: "/33.jpg",
-      category: "Writing",
-      tags: ["Fintech", "CBA", "Golang", "PHP"],
-      readTime: "6 min read",
-      status: "published",
-      featured: false,
-      isSyndicated: true,
-      syndicationPlatform: "Substack",
-      syndicationUrl: "https://substack.com/@luisthedev",
-      syndicatedTime: "2 hours ago",
-      createdAt: new Date("2024-10-22T09:00:00Z"),
-      publishedAt: new Date("2024-10-22T09:00:00Z"),
-    },
-    {
-      slug: "automated-transaction-schedulers-recurring-payments",
-      title: "Designing Fault-Tolerant Transaction Schedulers for Recurring Payments",
-      excerpt:
-        "Building automated crons and distributed lock managers to execute user savings and recurring billing without double-charging.",
-      content: `
-<p>Recurring payments present subtle race conditions in distributed environments. Multiple worker instances can inadvertently process the same subscription renewal if lock acquisition fails.</p>
-<p>Using Redis Redlock algorithms and idempotent transaction tokens, we ensured strict once-and-only-once execution guarantees across all recurring payment workflows.</p>
-      `.trim(),
-      coverImage: "/24.jpg",
-      category: "Tech",
-      tags: ["Redis", "DistributedSystems", "Fintech"],
-      readTime: "5 min read",
-      status: "published",
-      featured: false,
-      isSyndicated: true,
-      syndicationPlatform: "Medium",
-      syndicationUrl: "https://medium.com/@luisthedev",
-      syndicatedTime: "5 hours ago",
-      createdAt: new Date("2024-10-18T11:00:00Z"),
-      publishedAt: new Date("2024-10-18T11:00:00Z"),
-    },
-    {
-      slug: "nextjs-tailwind-react-native-design-systems",
-      title: "Unified Design Systems: From Next.js Web to React Native Mobile",
-      excerpt:
-        "Techniques for sharing design tokens, component architecture, and API consumers between web applications and cross-platform mobile apps.",
-      content: `
-<p>Maintaining visual consistency across responsive web platforms and React Native mobile clients requires intentional abstraction. By centralizing design tokens in Tailwind and TypeScript types in shared modules, engineering velocity increases dramatically.</p>
-      `.trim(),
-      coverImage: "/25.jpg",
-      category: "Tech",
-      tags: ["Next.js", "React Native", "TailwindCSS", "TypeScript"],
-      readTime: "4 min read",
-      status: "published",
-      featured: false,
-      isSyndicated: true,
-      syndicationPlatform: "Personal Blog",
-      syndicationUrl: null,
-      syndicatedTime: "1 day ago",
-      createdAt: new Date("2024-10-12T13:00:00Z"),
-      publishedAt: new Date("2024-10-12T13:00:00Z"),
+      syndicatedTime: "Published on Substack",
+      createdAt: new Date("2024-09-05T09:00:00Z"),
+      publishedAt: new Date("2024-09-05T09:00:00Z"),
     },
   ];
 
-  for (const post of articles) {
-    await prisma.post.create({ data: post });
+  for (const article of articles) {
+    await prisma.post.create({ data: article });
   }
 
-  // Real timeline events from Divine Adesiyan's resume & luisdev.ng platforms
-  const timelineEvents = [
-    {
-      year: 2026,
-      category: "milestone",
-      title: "Co-founder @ MyInvite",
-      description:
-        "Co-founded streamlined event management and ticketing platform (from April 2026), implementing high-throughput QR attendee check-ins, automated ticket verification, and compliant payment gateway integrations.",
-      link: "https://myinvite.ng",
-      order: 1,
-    },
-    {
-      year: 2026,
-      category: "milestone",
-      title: "Main Founder & Director @ Luis Dev Limited",
-      description:
-        "Founded and directing premier Nigerian software engineering and technology consulting agency (from Feb 2026). Leading full-stack engineering, business technology strategy, and AI automation for enterprise clients.",
-      link: "https://luisdev.ng",
-      order: 2,
-    },
-    {
-      year: 2026,
-      category: "project",
-      title: "MyInvite — Event Management & QR Ticketing",
-      description:
-        "High-performance event management application utilizing instant QR-based attendee check-ins, fraud-resistant ticketing, and secure multi-channel payment gateway integrations.",
-      link: "https://myinvite.ng",
-      order: 3,
-    },
-    {
-      year: 2026,
-      category: "project",
-      title: "Luis Dev Limited Platform & Consulting Agency",
-      description:
-        "Full-stack software engineering and business technology consulting agency platform showcasing services, product incubator, and architectural advisory discovery calls.",
-      link: "https://luisdev.ng",
-      order: 4,
-    },
-    {
-      year: 2026,
-      category: "project",
-      title: "Agrobod — Agritech Supply Chain Platform",
-      description:
-        "Tech-driven agritech platform bridging farmers and businesses through supply chain transparency, verified product quality assurance, and direct farm-to-door delivery.",
-      link: "https://agrobod.ng",
-      order: 5,
-    },
-    {
-      year: 2026,
-      category: "project",
-      title: "Kairos — Corporate Legal Advisory Platform",
-      description:
-        "Modern corporate legal platform providing strategic counsel and advisory services across M&A, Real Estate, Corporate Governance, and Dispute Resolution.",
-      link: "https://kairos-kohl-psi.vercel.app",
-      order: 6,
-    },
-    {
-      year: 2026,
-      category: "project",
-      title: "Alliance — B2B2C Marketplace Aggregator",
-      description:
-        "Robust B2B2C marketplace aggregation platform featuring seamless point-of-sale (POS) systems, live inventory synchronization modules, and white-label multi-tenant storefronts.",
-      link: "https://luisdev.ng#products",
-      order: 7,
-    },
-    {
-      year: 2026,
-      category: "project",
-      title: "Artisan — Tailor & Fashion Digital Marketplace",
-      description:
-        "Dedicated independent digital marketplace tailored specifically for fashion designers, tailors, and beauty professionals to manage clients, track orders, and scale operations.",
-      link: "https://luisdev.ng#products",
-      order: 8,
-    },
-    {
-      year: 2024,
-      category: "milestone",
-      title: "Senior Backend Engineer @ Konga Online Shopping",
-      description:
-        "Engineered high-availability Golang and PHP microservices, rebuilt enterprise Bill Payment engine, and delivered 50% throughput gain with Redis caching under 99.9% uptime SLAs.",
-      order: 1,
-    },
-    {
-      year: 2024,
-      category: "project",
-      title: "Konga Savings Platform & Bulk Engines",
-      description:
-        "Led end-to-end design and launch of the Savings Platform (loyalty rewards, fixed savings, targeted savings) and corporate Bulk Data/Airtime engines.",
-      order: 2,
-    },
-    {
-      year: 2023,
-      category: "milestone",
-      title: "Full Stack Engineer @ Hostville Nigeria",
-      description:
-        "Spearheaded revamps for Edclearn Edtech platform with Symfony, CodeIgniter, and Laravel, delivering 99% uptime and AWS containerized microservices.",
-      order: 1,
-    },
-    {
-      year: 2022,
-      category: "project",
-      title: "Respay Real Estate Platform @ Newage Solutions",
-      description:
-        "Engineered core frontend modules for Respay with React, Redux, and Tailwind CSS, automating rent payments, fee processing, and reducing page load times by 20%.",
-      order: 1,
-    },
-    {
-      year: 2022,
-      category: "project",
-      title: "Mobile Apps & The Connected Awards Launch",
-      description:
-        "Built cross-platform mobile features with React Native at Famesify and engineered the launch voting platform for The Connected Awards at Techtrend Africa.",
-      order: 2,
-    },
-    {
-      year: 2022,
-      category: "achievement",
-      title: "B.Sc. Computer Science & Education",
-      description:
-        "Graduated from the University of Ilorin with honors in Computer Science & Education.",
-      order: 3,
-    },
-    {
-      year: 2021,
-      category: "milestone",
-      title: "Senior Backend Developer & Mentorship @ Xcityworld",
-      description:
-        "Architected scalable Laravel APIs, background worker queues, and mentored engineering cohorts in software architecture best practices.",
-      order: 1,
-    },
-    {
-      year: 2020,
-      category: "project",
-      title: "AMATnow Food Delivery Ecosystem @ KPIE",
-      description:
-        "Engineered real-time order dispatch, driver coordination, and payment integrations boosted by 25% with Redis async job processors.",
-      order: 1,
-    },
-    {
-      year: 2017,
-      category: "milestone",
-      title: "Full Stack Web Developer @ Codeforum",
-      description:
-        "Began professional engineering journey building scalable web applications with PHP, JavaScript, and Laravel.",
-      order: 1,
-    },
-  ];
-
-  for (const event of timelineEvents) {
-    await prisma.timelineEvent.create({ data: event });
-  }
-
-  // Real Workspace & Competencies from Resume & Incubator
-  const workspaceItems = [
-    {
-      category: "daily_hardware",
-      name: "Apple MacBook Pro M3 & Dual Monitors",
-      description: "Primary workstation configured for high-performance microservices development",
-      icon: "laptop",
-      order: 1,
-    },
-    {
-      category: "daily_hardware",
-      name: "Mechanical Keyboard & Ergonomic Peripherals",
-      description: "Tactile setup tailored for long coding and technical writing sessions",
-      icon: "keyboard",
-      order: 2,
-    },
-    {
-      category: "daily_software",
-      name: "Golang & Node.js (NestJS, Express)",
-      description: "Core backend runtimes for high-throughput APIs and microservices",
-      icon: "code",
-      order: 1,
-    },
-    {
-      category: "daily_software",
-      name: "PHP (Laravel, Symfony, CodeIgniter)",
-      description: "Robust enterprise web applications and API frameworks",
-      icon: "terminal",
-      order: 2,
-    },
-    {
-      category: "daily_software",
-      name: "Docker, Azure & Huawei Cloud",
-      description: "Containerized deployment pipelines with 99.9% uptime SLAs",
-      icon: "cloud",
-      order: 3,
-    },
-    {
-      category: "favorite_tools",
-      name: "Redis (Cache, Queues, Crons, Redlock)",
-      description: "High-speed caching, worker queues, and distributed locks",
-      icon: "database",
-      order: 1,
-    },
-    {
-      category: "favorite_tools",
-      name: "PostgreSQL & MySQL",
-      description: "Relational persistence, optimized schemas, and transaction isolation",
-      icon: "database",
-      order: 2,
-    },
-    {
-      category: "software",
-      name: "React JS, React Native & Next.js",
-      description: "Modern frontend and cross-platform mobile application development",
-      icon: "layers",
-      order: 1,
-    },
-    {
-      category: "software",
-      name: "TypeScript & Tailwind CSS v4",
-      description: "Type-safe styling and component architecture",
-      icon: "code",
-      order: 2,
-    },
-    {
-      category: "github",
-      name: "Luis Dev Limited (luisdev.ng)",
-      description: "Software engineering, digital transformation, and business tech consulting agency",
-      icon: "globe",
-      order: 1,
-    },
-    {
-      category: "github",
-      name: "MyInvite (myinvite.ng)",
-      description: "High-throughput QR ticketing & modern event management platform",
-      icon: "calendar",
-      order: 2,
-    },
-    {
-      category: "github",
-      name: "luisthe-dev (LuisThe___Dev)",
-      description: "Open source contributions, developer utilities, and web experiments",
-      icon: "git-branch",
-      order: 3,
-    },
-    {
-      category: "resources",
-      name: "Fintech Systems Design & Core Banking",
-      description: "Automated reconciliation, vendor failover, and high-concurrency schedulers",
-      icon: "book",
-      order: 1,
-    },
-  ];
-
-  for (const item of workspaceItems) {
-    await prisma.workspaceItem.create({ data: item });
-  }
-
-  console.log("Database seeded successfully with Divine Adesiyan's profile!");
+  console.log("Database seeded successfully with all authentic CV data, competencies, and articles!");
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error("Seeding error:", e);
     process.exit(1);
   })
   .finally(async () => {

@@ -28,24 +28,62 @@ export interface NewsletterSubscriber {
 export interface TimelineEvent {
   id: string;
   year: number;
-  category: "milestone" | "project" | "achievement";
+  period?: string | null;
+  category: "experience" | "schooling" | "certification" | "leadership" | "milestone";
   title: string;
+  organization?: string | null;
+  location?: string | null;
   description: string;
   link?: string | null;
   order: number;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }
 
 export interface WorkspaceItem {
   id: string;
-  category:
-    | "daily_hardware"
-    | "daily_software"
-    | "favorite_tools"
-    | "software"
-    | "github"
-    | "resources";
+  category: string;
   name: string;
   description?: string | null;
+  url?: string | null;
   icon?: string | null;
   order: number;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
+export interface Competency {
+  id: string;
+  category: string;
+  skills: string[];
+  order: number;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
+export interface SocialLink {
+  id: string;
+  platform: string;
+  label: string;
+  url: string;
+  icon?: string | null;
+  order: number;
+  isEnabled: boolean;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
+export interface SiteSettingsMap {
+  hero_headline?: string;
+  hero_badge_text?: string;
+  hero_subheadline?: string;
+  hero_bio?: string;
+  about_headline?: string;
+  about_bio?: string;
+  smtp_host?: string;
+  smtp_port?: string;
+  smtp_user?: string;
+  smtp_pass?: string;
+  smtp_from?: string;
+  smtp_secure?: string;
 }

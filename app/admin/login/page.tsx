@@ -28,15 +28,16 @@ export default function AdminLoginPage() {
 
       router.push("/admin");
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || "Failed to log in.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to log in.";
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center">
+    <div className="min-h-[70vh] flex items-center justify-center px-4">
       <div className="max-w-md w-full p-8 rounded-3xl bg-card border border-border shadow-lg flex flex-col gap-6">
         <div className="flex flex-col items-center text-center gap-2">
           <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
@@ -46,7 +47,7 @@ export default function AdminLoginPage() {
             Admin Studio Login
           </h1>
           <p className="text-xs text-muted-foreground max-w-xs">
-            Enter your admin secret passcode to manage articles, syndication, and publications.
+            Enter your admin credentials to manage content, settings, and publications.
           </p>
         </div>
 
@@ -59,14 +60,11 @@ export default function AdminLoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter admin password..."
+              placeholder="Enter your admin passcode..."
               required
               autoFocus
               className="w-full px-4 py-3 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-hidden focus:ring-2 focus:ring-primary"
             />
-            <span className="text-[11px] text-muted-foreground">
-              Default password configured in .env is: <code className="font-mono bg-muted px-1 rounded">admin</code>
-            </span>
           </div>
 
           {error && (

@@ -20,7 +20,7 @@ export default function AdminLayout({
               <div className="w-7 h-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs">
                 CMS
               </div>
-              <span>Alex Thompson Studio</span>
+              <span>Divine Adesiyan Studio</span>
             </Link>
 
             <nav className="hidden sm:flex items-center gap-2">
