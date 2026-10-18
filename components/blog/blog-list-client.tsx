@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
 import BlogMainLayoutComponent from "./main";
 import { BlogPost } from "@/lib/types/blog";
@@ -12,11 +13,12 @@ interface BlogListClientProps {
 
 const CATEGORIES = ["All", "Tech", "Writing", "Architecture", "Substack", "Personal"];
 
-export default function BlogListClient({
-  initialPosts,
-  initialCategory = "All",
-}: BlogListClientProps) {
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+function BlogListInner({ initialPosts, initialCategory = "All" }: BlogListClientProps) {
+  const searchParams = useSearchParams();
+  const urlCategory = searchParams.get("category");
+  const effectiveCategory = urlCategory || initialCategory;
+
+  const [selectedCategory, setSelectedCategory] = useState(effectiveCategory);
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleCount, setVisibleCount] = useState(9);
 
@@ -117,5 +119,13 @@ export default function BlogListClient({
         </div>
       )}
     </div>
+  );
+}
+
+export default function BlogListClient(props: BlogListClientProps) {
+  return (
+    <Suspense fallback={<BlogMainLayoutComponent articles={props.initialPosts.slice(0, 9)} columns={3} />}>
+      <BlogListInner {...props} />
+    </Suspense>
   );
 }

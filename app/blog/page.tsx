@@ -4,20 +4,13 @@ import { getPosts } from "@/lib/db/posts";
 
 export const revalidate = 60;
 
-interface BlogPageProps {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}
-
-export default async function BlogPage({ searchParams }: BlogPageProps) {
-  const resolvedParams = await searchParams;
-  const initialCategory =
-    typeof resolvedParams?.category === "string"
-      ? resolvedParams.category
-      : "All";
-
+export default async function BlogPage() {
   const { posts } = await getPosts({
     status: "published",
     limit: 50,
+  }).catch((err) => {
+    console.error("Failed to load posts for /blog:", err);
+    return { posts: [], total: 0 };
   });
 
   return (
@@ -35,10 +28,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
         </div>
 
         {/* Interactive Search, Filter, and Grid */}
-        <BlogListClient
-          initialPosts={posts}
-          initialCategory={initialCategory}
-        />
+        <BlogListClient initialPosts={posts} />
       </div>
     </div>
   );
