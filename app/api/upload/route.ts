@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/lib/auth";
+import { isR2Configured, uploadToR2 } from "@/lib/r2";
 import fs from "fs/promises";
 import path from "path";
 
@@ -38,9 +39,6 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
-    await fs.mkdir(uploadsDir, { recursive: true });
-
     const ext = path.extname(file.name) || ".jpg";
     const cleanName = path
       .basename(file.name, ext)
@@ -48,8 +46,26 @@ export async function POST(request: NextRequest) {
       .replace(/[^a-z0-9]+/g, "-")
       .slice(0, 30);
     const fileName = `${Date.now()}-${cleanName}${ext}`;
-    const filePath = path.join(uploadsDir, fileName);
 
+    // 1. Cloudflare R2 primary storage
+    if (isR2Configured()) {
+      const publicUrl = await uploadToR2({
+        buffer,
+        fileName,
+        contentType: file.type || "image/jpeg",
+      });
+
+      return NextResponse.json({
+        url: publicUrl,
+        fileName,
+        storage: "r2",
+      });
+    }
+
+    // 2. Fallback to local storage (for local offline dev if R2 credentials are not yet set)
+    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    await fs.mkdir(uploadsDir, { recursive: true });
+    const filePath = path.join(uploadsDir, fileName);
     await fs.writeFile(filePath, buffer);
 
     const publicUrl = `/uploads/${fileName}`;
@@ -57,6 +73,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       url: publicUrl,
       fileName,
+      storage: "local",
     });
   } catch (error: unknown) {
     console.error("Upload error:", error);
