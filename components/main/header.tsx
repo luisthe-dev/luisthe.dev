@@ -5,13 +5,22 @@ import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState, useSyncExternalStore } from "react";
+import { SiteSettingsMap } from "@/lib/types/blog";
 
 const emptySubscribe = () => () => {};
 
-const HeaderComponent = () => {
+interface HeaderProps {
+  settings?: SiteSettingsMap;
+}
+
+const HeaderComponent = ({ settings }: HeaderProps = {}) => {
   const { setTheme, resolvedTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+
+  const authorName = settings?.author_name || "Divine Adesiyan";
+  const authorRole = settings?.author_role || "Founder & Architect";
+  const initial = authorName.charAt(0) || "D";
 
   // Hydration-safe mounted check without setState in effect
   const isMounted = useSyncExternalStore(
@@ -35,13 +44,13 @@ const HeaderComponent = () => {
           className="flex items-center gap-2.5 font-semibold text-sm tracking-tight text-foreground hover:opacity-80 transition-opacity"
         >
           <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs shadow-xs">
-            D
+            {initial}
           </div>
           <span className="flex items-center gap-1.5 font-medium">
-            <span className="font-bold text-foreground">Divine Adesiyan</span>
+            <span className="font-bold text-foreground">{authorName}</span>
             <span className="text-muted-foreground/60 hidden sm:inline">|</span>
             <span className="text-muted-foreground hidden sm:inline text-xs font-normal">
-              Founder &amp; Architect
+              {authorRole}
             </span>
           </span>
         </Link>

@@ -10,17 +10,25 @@ import { toast } from "@/components/ui/toast";
 interface AdjacentPost {
   slug: string;
   title: string;
-  createdAt: Date | string;
+  createdAt?: Date | string;
 }
 
 interface SingleBlogOutroCardProps {
   previousPost?: AdjacentPost | null;
   nextPost?: AdjacentPost | null;
+  authorName?: string;
+  authorRole?: string;
+  authorBio?: string;
+  socialLinks?: Array<{ platform: string; url: string; label: string }>;
 }
 
 const SingleBlogOutroCard: React.FC<SingleBlogOutroCardProps> = ({
   previousPost,
   nextPost,
+  authorName = "Divine Adesiyan",
+  authorRole = "Systems Architect & Technical Product Manager",
+  authorBio = "Full Stack Engineer & Technical Writer with 8+ years building high-throughput microservices, fintech engines, and cloud platforms. Writing about distributed systems, resilient architectures, and engineering leadership.",
+  socialLinks,
 }) => {
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -115,61 +123,90 @@ const SingleBlogOutroCard: React.FC<SingleBlogOutroCardProps> = ({
           <div className="flex flex-wrap items-center justify-between w-full gap-2">
             <div>
               <h3 className="font-bold text-lg text-foreground">
-                Divine Adesiyan
+                {authorName}
               </h3>
               <p className="text-xs text-primary font-medium">
-                Senior Backend Engineer @ Konga | LuisThe___Dev
+                {authorRole}
               </p>
             </div>
             {/* Social Links */}
-            <div className="flex items-center gap-3 text-muted-foreground">
-              <a
-                href="https://github.com/luisthe-dev"
-                target="_blank"
-                rel="noreferrer"
-                aria-label="GitHub"
-                className="hover:text-foreground transition-colors p-1"
-                title="GitHub"
-              >
-                <GithubIcon className="w-4 h-4" />
-              </a>
-              <a
-                href="https://linkedin.com/in/divinegiftadesiyan"
-                target="_blank"
-                rel="noreferrer"
-                aria-label="LinkedIn"
-                className="hover:text-foreground transition-colors p-1"
-                title="LinkedIn"
-              >
-                <LinkedinIcon className="w-4 h-4" />
-              </a>
-              <a
-                href="https://x.com/luisthe___dev"
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Twitter"
-                className="hover:text-foreground transition-colors p-1"
-                title="Twitter"
-              >
-                <TwitterIcon className="w-4 h-4" />
-              </a>
-              <a
-                href="https://substack.com/@luisthedev"
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Substack"
-                className="hover:text-foreground transition-colors p-1"
-                title="Substack"
-              >
-                <SubstackIcon className="w-4 h-4" />
-              </a>
+            <div className="flex items-center gap-3 text-muted-foreground flex-wrap">
+              {socialLinks && socialLinks.length > 0 ? (
+                socialLinks.map((link) => {
+                  const p = link.platform.toLowerCase();
+                  return (
+                    <a
+                      key={link.url}
+                      href={link.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={link.label}
+                      title={link.label}
+                      className="hover:text-foreground transition-colors p-1"
+                    >
+                      {p.includes("github") ? (
+                        <GithubIcon className="w-4 h-4" />
+                      ) : p.includes("linkedin") ? (
+                        <LinkedinIcon className="w-4 h-4" />
+                      ) : p.includes("twitter") || p === "x" ? (
+                        <TwitterIcon className="w-4 h-4" />
+                      ) : p.includes("substack") ? (
+                        <SubstackIcon className="w-4 h-4" />
+                      ) : (
+                        <span className="text-xs uppercase font-bold">{link.label.slice(0, 2)}</span>
+                      )}
+                    </a>
+                  );
+                })
+              ) : (
+                <>
+                  <a
+                    href="https://github.com/luisthe-dev"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="GitHub"
+                    className="hover:text-foreground transition-colors p-1"
+                    title="GitHub"
+                  >
+                    <GithubIcon className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://linkedin.com/in/divinegiftadesiyan"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="LinkedIn"
+                    className="hover:text-foreground transition-colors p-1"
+                    title="LinkedIn"
+                  >
+                    <LinkedinIcon className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://x.com/luisthe___dev"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Twitter"
+                    className="hover:text-foreground transition-colors p-1"
+                    title="Twitter"
+                  >
+                    <TwitterIcon className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://substack.com/@luisthedev"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Substack"
+                    className="hover:text-foreground transition-colors p-1"
+                    title="Substack"
+                  >
+                    <SubstackIcon className="w-4 h-4" />
+                  </a>
+                </>
+              )}
             </div>
           </div>
 
           <p className="text-sm text-muted-foreground leading-relaxed mt-1">
-            Full Stack Engineer with 8+ years building high-throughput microservices,
-            fintech engines, and cloud platforms. Writing about distributed architecture,
-            Redis caching strategies, and developer craftsmanship.
+            {authorBio}
           </p>
         </div>
       </div>

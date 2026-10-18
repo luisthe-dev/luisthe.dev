@@ -9,6 +9,7 @@ import {
   NewsletterSubscriber,
 } from "@/lib/types/blog";
 import { Prisma } from "@prisma/client";
+import { calculateReadTime } from "@/lib/utils";
 
 // ==========================================
 // 1. POSTS
@@ -139,7 +140,7 @@ export async function createPost(data: Partial<BlogPost>): Promise<BlogPost> {
       coverImage: data.coverImage || "/24.jpg",
       category: data.category || "Tech",
       tags: data.tags || [],
-      readTime: data.readTime || "3 min read",
+      readTime: data.readTime?.trim() || calculateReadTime(data.content || ""),
       status: data.status || "draft",
       featured: data.featured || false,
       isSyndicated: data.isSyndicated || false,
@@ -164,7 +165,12 @@ export async function updatePost(
     coverImage: data.coverImage,
     category: data.category,
     tags: data.tags,
-    readTime: data.readTime,
+    readTime:
+      data.readTime !== undefined
+        ? data.readTime.trim() || (data.content ? calculateReadTime(data.content) : undefined)
+        : data.content
+        ? calculateReadTime(data.content)
+        : undefined,
     status: data.status,
     featured: data.featured,
     isSyndicated: data.isSyndicated,

@@ -3,6 +3,7 @@ import { Clock, Calendar } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
+import { calculateReadTime } from "@/lib/utils";
 
 interface BlogPreviewCardProps {
   article: BlogPost;
@@ -23,6 +24,8 @@ const BlogPreviewCard: React.FC<BlogPreviewCardProps> = ({ article }) => {
   const isSubstack =
     article.syndicationPlatform?.toLowerCase() === "substack" ||
     article.category?.toLowerCase() === "substack";
+
+  const displayReadTime = article.readTime || calculateReadTime(article.content);
 
   return (
     <article className="group flex flex-col justify-between bg-card text-card-foreground rounded-2xl border border-border/70 overflow-hidden shadow-xs hover:shadow-md hover:border-border transition-all duration-200 hover:-translate-y-1">
@@ -51,6 +54,7 @@ const BlogPreviewCard: React.FC<BlogPreviewCardProps> = ({ article }) => {
               src={article.coverImage}
               alt={article.title}
               fill
+              unoptimized
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 380px"
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
@@ -97,7 +101,7 @@ const BlogPreviewCard: React.FC<BlogPreviewCardProps> = ({ article }) => {
 
         <div className="flex items-center gap-1">
           <Clock className="w-3.5 h-3.5" />
-          <span>{article.readTime || "4 min read"}</span>
+          <span>{displayReadTime}</span>
         </div>
       </div>
     </article>

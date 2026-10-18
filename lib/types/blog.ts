@@ -80,6 +80,9 @@ export interface SiteSettingsMap {
   hero_bio?: string;
   about_headline?: string;
   about_bio?: string;
+  author_name?: string;
+  author_role?: string;
+  author_bio?: string;
   smtp_host?: string;
   smtp_port?: string;
   smtp_user?: string;

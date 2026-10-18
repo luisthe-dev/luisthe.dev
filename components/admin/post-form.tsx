@@ -11,10 +11,12 @@ import {
   Upload,
   Sparkles,
   Loader2,
+  RefreshCw,
 } from "lucide-react";
 import RichEditor from "./rich-editor";
 import { BlogPost } from "@/lib/types/blog";
 import { toast } from "@/components/ui/toast";
+import { calculateReadTime, calculateWordCount } from "@/lib/utils";
 
 interface PostFormProps {
   initialData?: Partial<BlogPost>;
@@ -39,7 +41,10 @@ export default function PostForm({
   const [category, setCategory] = useState(initialData?.category || "Tech");
   const [tags, setTags] = useState<string[]>(initialData?.tags || ["Engineering"]);
   const [tagInput, setTagInput] = useState("");
-  const [readTime, setReadTime] = useState(initialData?.readTime || "4 min read");
+  const [readTime, setReadTime] = useState(
+    initialData?.readTime || calculateReadTime(initialData?.content || "")
+  );
+  const [readTimeModified, setReadTimeModified] = useState(Boolean(initialData?.readTime));
   const [featured, setFeatured] = useState(initialData?.featured || false);
   const [status, setStatus] = useState<"published" | "draft">(
     initialData?.status || "published"
@@ -273,7 +278,15 @@ export default function PostForm({
             <label className="text-xs font-bold text-foreground uppercase tracking-wider">
               Article Content &amp; Rich Formatting
             </label>
-            <RichEditor value={content} onChange={setContent} />
+            <RichEditor
+              value={content}
+              onChange={(val) => {
+                setContent(val);
+                if (!readTimeModified) {
+                  setReadTime(calculateReadTime(val));
+                }
+              }}
+            />
           </div>
         </div>
 
@@ -322,18 +335,39 @@ export default function PostForm({
               </select>
             </div>
 
-            {/* Read Time */}
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-muted-foreground">
-                Read Time
-              </label>
+            {/* Read Time with Auto-Calculation */}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Read Time (Auto-calculated)
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const auto = calculateReadTime(content);
+                    setReadTime(auto);
+                    setReadTimeModified(false);
+                  }}
+                  className="text-[11px] text-primary hover:underline cursor-pointer flex items-center gap-1 font-semibold"
+                  title="Recalculate read time from content"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  <span>Sync from words</span>
+                </button>
+              </div>
               <input
                 type="text"
                 value={readTime}
-                onChange={(e) => setReadTime(e.target.value)}
+                onChange={(e) => {
+                  setReadTime(e.target.value);
+                  setReadTimeModified(true);
+                }}
                 placeholder="e.g. 5 min read"
                 className="w-full px-3 py-2 rounded-xl bg-background border border-border text-foreground text-xs focus:outline-hidden"
               />
+              <span className="text-[11px] text-muted-foreground">
+                Auto-estimated at ~200 wpm ({calculateWordCount(content).toLocaleString()} words)
+              </span>
             </div>
 
             {/* Featured Switch */}

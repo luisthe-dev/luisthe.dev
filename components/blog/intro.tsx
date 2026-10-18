@@ -4,12 +4,19 @@ import FacelessCoderLottie from "@/components/ui/faceless-coder-lottie";
 import { BlogPost } from "@/lib/types/blog";
 import { Calendar, Clock, ExternalLink, BookOpen } from "lucide-react";
 import ShareBar from "./share-bar";
+import { calculateReadTime, calculateWordCount } from "@/lib/utils";
 
 interface SingleBlogIntroCardProps {
   article: BlogPost;
+  authorName?: string;
+  authorRole?: string;
 }
 
-const SingleBlogIntroCard: React.FC<SingleBlogIntroCardProps> = ({ article }) => {
+const SingleBlogIntroCard: React.FC<SingleBlogIntroCardProps> = ({
+  article,
+  authorName = "Divine Adesiyan",
+  authorRole = "Systems Architect & Writer",
+}) => {
   const formattedDate = article.publishedAt || article.createdAt
     ? new Date(article.publishedAt || article.createdAt).toLocaleDateString(
         "en-US",
@@ -21,10 +28,9 @@ const SingleBlogIntroCard: React.FC<SingleBlogIntroCardProps> = ({ article }) =>
       )
     : "Recently";
 
-  // Calculate approximate word count
-  const wordCount = article.content
-    ? article.content.trim().split(/\s+/).filter(Boolean).length
-    : 0;
+  // Automatically aggregate word count and reading time from content
+  const wordCount = calculateWordCount(article.content);
+  const displayReadTime = article.readTime || calculateReadTime(article.content);
 
   return (
     <div className="w-full flex flex-col gap-6 pb-6">
@@ -62,8 +68,8 @@ const SingleBlogIntroCard: React.FC<SingleBlogIntroCardProps> = ({ article }) =>
             <FacelessCoderLottie size="sm" className="rounded-full w-10 h-10 p-1" />
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-bold text-foreground">Divine Adesiyan</span>
-            <span className="text-xs text-muted-foreground">Systems Architect &amp; Writer</span>
+            <span className="text-sm font-bold text-foreground">{authorName}</span>
+            <span className="text-xs text-muted-foreground">{authorRole}</span>
           </div>
         </div>
 
@@ -74,7 +80,7 @@ const SingleBlogIntroCard: React.FC<SingleBlogIntroCardProps> = ({ article }) =>
           </div>
           <div className="flex items-center gap-1.5" title="Reading Time">
             <Clock className="w-3.5 h-3.5 text-primary" />
-            <span>{article.readTime || "5 min read"}</span>
+            <span>{displayReadTime}</span>
           </div>
           {wordCount > 0 && (
             <div className="flex items-center gap-1.5" title="Word Count">
@@ -94,6 +100,7 @@ const SingleBlogIntroCard: React.FC<SingleBlogIntroCardProps> = ({ article }) =>
               alt={article.title}
               fill
               priority
+              unoptimized
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 800px, 800px"
             />

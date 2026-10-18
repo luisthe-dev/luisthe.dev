@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/ui/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import HeaderComponent from "@/components/main/header";
 import FooterComponent from "@/components/main/footer";
+import { getSiteSettings, getSocialLinks } from "@/lib/db/posts";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -25,11 +26,16 @@ export const metadata: Metadata = {
     "Founder of Luis Dev Limited, Co-Founder of MyInvite, Senior Backend Engineer. 8+ years building high-throughput microservices, fintech engines, and distributed architectures.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [siteSettings, socialLinks] = await Promise.all([
+    getSiteSettings().catch(() => ({})),
+    getSocialLinks(true).catch(() => []),
+  ]);
+
   return (
     <html
       lang="en"
@@ -51,9 +57,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ToastProvider>
-            <HeaderComponent />
+            <HeaderComponent settings={siteSettings} />
             {children}
-            <FooterComponent />
+            <FooterComponent settings={siteSettings} socialLinks={socialLinks} />
           </ToastProvider>
         </ThemeProvider>
       </body>
