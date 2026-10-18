@@ -95,7 +95,7 @@ export async function verifyAdminCredentials(
             where: { id: adminUser.id },
             data: { passwordHash: newHash },
           })
-          .catch((e) => console.warn("Failed to sync admin password to DB:", e));
+          .catch((e: unknown) => console.warn("Failed to sync admin password to DB:", e));
       }
 
       return {

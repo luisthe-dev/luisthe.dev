@@ -1,7 +1,16 @@
 import { PrismaClient } from "@prisma/client";
+import { PrismaNeon } from "@prisma/adapter-neon";
 import bcrypt from "bcryptjs";
+import "dotenv/config";
 
-const prisma = new PrismaClient();
+const rawUrl = process.env.DATABASE_URL || "";
+const connectionString = rawUrl
+  .replace("&channel_binding=require", "")
+  .replace("?channel_binding=require&", "?")
+  .replace("?channel_binding=require", "");
+
+const adapter = new PrismaNeon({ connectionString });
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log("Seeding database with Divine Adesiyan's authentic profile and CV data...");
@@ -649,7 +658,7 @@ This architecture ensures zero double-allocations while giving purchasers adequa
 }
 
 main()
-  .catch((e) => {
+  .catch((e: unknown) => {
     console.error("Seeding error:", e);
     process.exit(1);
   })
