@@ -1,14 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Lock, ArrowRight, Loader2, AlertCircle } from "lucide-react";
 
 export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,8 +24,8 @@ export default function AdminLoginPage() {
         throw new Error("Invalid password. Please try again.");
       }
 
-      router.push("/admin");
-      router.refresh();
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.href = "/admin";
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to log in.";
       setError(msg);

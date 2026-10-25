@@ -146,6 +146,14 @@ const FooterComponent = ({ settings, socialLinks }: FooterProps = {}) => {
               <h4 className="font-semibold text-xs uppercase tracking-wider text-foreground">
                 Connect
               </h4>
+              <a
+                href={settings?.cal_link || "https://cal.com/luisthe-dev"}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-primary font-medium hover:underline transition-colors"
+              >
+                Schedule Call (Cal.com) &rarr;
+              </a>
               {activeLinks.slice(0, 5).map((link, idx) => (
                 <a
                   key={link.id || `connect-${link.platform}-${idx}`}

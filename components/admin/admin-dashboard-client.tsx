@@ -53,13 +53,13 @@ interface AdminDashboardClientProps {
 }
 
 export default function AdminDashboardClient({
-  initialPosts,
-  initialTimelineEvents,
-  initialCompetencies,
-  initialWorkspaceItems,
-  initialSocialLinks,
-  initialSettings,
-  initialSubscribers,
+  initialPosts = [],
+  initialTimelineEvents = [],
+  initialCompetencies = [],
+  initialWorkspaceItems = [],
+  initialSocialLinks = [],
+  initialSettings = {},
+  initialSubscribers = [],
 }: AdminDashboardClientProps) {
   // Navigation active tab
   const [activeTab, setActiveTab] = useState<
@@ -79,19 +79,19 @@ export default function AdminDashboardClient({
   >("experience");
 
   // State
-  const [posts, setPosts] = useState<BlogPost[]>(initialPosts);
+  const [posts, setPosts] = useState<BlogPost[]>(initialPosts || []);
   const [timelineEvents, setTimelineEvents] =
-    useState<TimelineEvent[]>(initialTimelineEvents);
+    useState<TimelineEvent[]>(initialTimelineEvents || []);
   const [competencies, setCompetencies] =
-    useState<Competency[]>(initialCompetencies);
+    useState<Competency[]>(initialCompetencies || []);
   const [workspaceItems, setWorkspaceItems] =
-    useState<WorkspaceItem[]>(initialWorkspaceItems);
+    useState<WorkspaceItem[]>(initialWorkspaceItems || []);
   const [socialLinks, setSocialLinks] =
-    useState<SocialLink[]>(initialSocialLinks);
+    useState<SocialLink[]>(initialSocialLinks || []);
   const [siteSettings, setSiteSettings] =
-    useState<SiteSettingsMap>(initialSettings);
+    useState<SiteSettingsMap>(initialSettings || {});
   const [subscribers, setSubscribers] =
-    useState<NewsletterSubscriber[]>(initialSubscribers);
+    useState<NewsletterSubscriber[]>(initialSubscribers || []);
 
   // Filter/Search for posts
   const [search, setSearch] = useState("");
@@ -799,15 +799,16 @@ Keep building,
   };
 
   // Filtered posts
-  const filteredPosts = posts.filter((post) => {
+  const filteredPosts = (posts || []).filter((post) => {
+    if (!post) return false;
     const matchesStatus =
       statusFilter === "all" || post.status === statusFilter;
-    const query = search.toLowerCase().trim();
+    const query = (search || "").toLowerCase().trim();
     const matchesSearch =
       !query ||
-      post.title.toLowerCase().includes(query) ||
-      post.slug.toLowerCase().includes(query) ||
-      post.category.toLowerCase().includes(query);
+      (post.title || "").toLowerCase().includes(query) ||
+      (post.slug || "").toLowerCase().includes(query) ||
+      (post.category || "").toLowerCase().includes(query);
     return matchesStatus && matchesSearch;
   });
 
@@ -1026,8 +1027,9 @@ Keep building,
                           <div className="relative w-12 h-10 rounded-lg overflow-hidden bg-muted shrink-0 border border-border">
                             <Image
                               src={post.coverImage || "/24.jpg"}
-                              alt={post.title}
+                              alt={post.title || "Article cover"}
                               fill
+                              unoptimized
                               className="object-cover"
                             />
                           </div>
@@ -1065,11 +1067,13 @@ Keep building,
                         </span>
                       </td>
                       <td className="py-3 px-4 text-muted-foreground text-xs">
-                        {new Date(post.createdAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
+                        {post.createdAt
+                          ? new Date(post.createdAt).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })
+                          : "—"}
                       </td>
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-1">
@@ -1453,6 +1457,27 @@ Keep building,
                 />
               </div>
 
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-foreground">
+                  Cal.com Booking URL (Advisory &amp; Consultation)
+                </label>
+                <input
+                  type="text"
+                  placeholder="https://cal.com/luisthe-dev (or your Cal.com event link)"
+                  value={siteSettings.cal_link || ""}
+                  onChange={(e) =>
+                    setSiteSettings((prev) => ({
+                      ...prev,
+                      cal_link: e.target.value,
+                    }))
+                  }
+                  className="px-3.5 py-2.5 rounded-xl bg-background border border-border text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-primary"
+                />
+                <span className="text-[11px] text-muted-foreground">
+                  Powers the &quot;Book Consultation&quot; Cal.com CTA across the Hero, About, and Footer.
+                </span>
+              </div>
+
               <div className="flex flex-col gap-1.5 pt-2 border-t border-border">
                 <label className="text-xs font-semibold text-foreground">
                   About Page Subheading
@@ -1541,11 +1566,13 @@ Keep building,
                       {sub.email}
                     </td>
                     <td className="py-3 px-4 text-xs text-muted-foreground">
-                      {new Date(sub.createdAt).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                      {sub.createdAt
+                        ? new Date(sub.createdAt).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })
+                        : "—"}
                     </td>
                     <td className="py-3 px-4 text-right">
                       <button

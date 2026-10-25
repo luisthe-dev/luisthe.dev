@@ -77,6 +77,14 @@ const HeaderComponent = ({ settings }: HeaderProps = {}) => {
                 </Link>
               );
             })}
+            <a
+              href={settings?.cal_link || "https://cal.com/luisthe-dev"}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs font-semibold px-3 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-all"
+            >
+              Book Call
+            </a>
           </nav>
 
           <div className="h-4 w-[1px] bg-border hidden md:block" />
@@ -126,6 +134,15 @@ const HeaderComponent = ({ settings }: HeaderProps = {}) => {
               {link.label}
             </Link>
           ))}
+          <a
+            href={settings?.cal_link || "https://cal.com/luisthe-dev"}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block py-2 text-base font-semibold text-primary hover:underline"
+          >
+            Book Call (Cal.com) &rarr;
+          </a>
         </div>
       )}
     </header>

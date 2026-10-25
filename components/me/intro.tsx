@@ -1,5 +1,5 @@
 import React from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Calendar } from "lucide-react";
 import FacelessCoderLottie from "@/components/ui/faceless-coder-lottie";
 import { SiteSettingsMap } from "@/lib/types/blog";
 
@@ -37,6 +37,18 @@ const MyIntroComponent: React.FC<MyIntroComponentProps> = ({ settings }) => {
             <p className="whitespace-pre-line leading-relaxed text-foreground/90">
               {bio}
             </p>
+          </div>
+
+          <div className="pt-2 flex flex-wrap items-center gap-3">
+            <a
+              href={settings?.cal_link || "https://cal.com/luisthe-dev"}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-all shadow-xs"
+            >
+              <Calendar className="w-4 h-4" />
+              <span>Schedule Call via Cal.com</span>
+            </a>
           </div>
         </div>
 

@@ -23,87 +23,115 @@ export async function getPosts(options?: {
   limit?: number;
   offset?: number;
 }) {
-  const {
-    search,
-    category,
-    status = "published",
-    featured,
-    limit,
-    offset,
-  } = options || {};
+  try {
+    const {
+      search,
+      category,
+      status = "published",
+      featured,
+      limit,
+      offset,
+    } = options || {};
 
-  const where: Prisma.PostWhereInput = {};
+    const where: Prisma.PostWhereInput = {};
 
-  if (status && status !== "all") {
-    where.status = status;
-  }
+    if (status && status !== "all") {
+      where.status = status;
+    }
 
-  if (category && category !== "All") {
-    where.category = {
-      equals: category,
-      mode: "insensitive",
+    if (category && category !== "All") {
+      where.category = {
+        equals: category,
+        mode: "insensitive",
+      };
+    }
+
+    if (featured !== undefined) {
+      where.featured = featured;
+    }
+
+    if (search && search.trim()) {
+      where.OR = [
+        { title: { contains: search, mode: "insensitive" } },
+        { excerpt: { contains: search, mode: "insensitive" } },
+        { content: { contains: search, mode: "insensitive" } },
+        { tags: { has: search } },
+      ];
+    }
+
+    const [items, total] = await Promise.all([
+      prisma.post.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        take: limit,
+        skip: offset,
+      }),
+      prisma.post.count({ where }),
+    ]);
+
+    return {
+      posts: JSON.parse(JSON.stringify(items)) as BlogPost[],
+      total,
+    };
+  } catch (error) {
+    console.error("Database query error in getPosts:", error);
+    return {
+      posts: [],
+      total: 0,
     };
   }
-
-  if (featured !== undefined) {
-    where.featured = featured;
-  }
-
-  if (search && search.trim()) {
-    where.OR = [
-      { title: { contains: search, mode: "insensitive" } },
-      { excerpt: { contains: search, mode: "insensitive" } },
-      { content: { contains: search, mode: "insensitive" } },
-      { tags: { has: search } },
-    ];
-  }
-
-  const [items, total] = await Promise.all([
-    prisma.post.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      take: limit,
-      skip: offset,
-    }),
-    prisma.post.count({ where }),
-  ]);
-
-  return {
-    posts: items as unknown as BlogPost[],
-    total,
-  };
 }
 
 export async function getFeaturedPosts(): Promise<BlogPost[]> {
-  const posts = await prisma.post.findMany({
-    where: { status: "published", featured: true },
-    orderBy: { createdAt: "desc" },
-    take: 3,
-  });
-  return posts as unknown as BlogPost[];
+  try {
+    const posts = await prisma.post.findMany({
+      where: { status: "published", featured: true },
+      orderBy: { createdAt: "desc" },
+      take: 3,
+    });
+    return JSON.parse(JSON.stringify(posts)) as BlogPost[];
+  } catch (error) {
+    console.error("Failed to load featured posts:", error);
+    return [];
+  }
 }
 
 export async function getSyndicatedPosts(): Promise<BlogPost[]> {
-  const posts = await prisma.post.findMany({
-    where: { status: "published", isSyndicated: true },
-    orderBy: { createdAt: "desc" },
-    take: 6,
-  });
-  return posts as unknown as BlogPost[];
+  try {
+    const posts = await prisma.post.findMany({
+      where: { status: "published", isSyndicated: true },
+      orderBy: { createdAt: "desc" },
+      take: 6,
+    });
+    return JSON.parse(JSON.stringify(posts)) as BlogPost[];
+  } catch (error) {
+    console.error("Failed to load syndicated posts:", error);
+    return [];
+  }
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
-  const post = await prisma.post.findUnique({
-    where: { slug },
-  });
-  return (post as unknown as BlogPost) || null;
+  try {
+    const post = await prisma.post.findUnique({
+      where: { slug },
+    });
+    return post ? (JSON.parse(JSON.stringify(post)) as BlogPost) : null;
+  } catch (error) {
+    console.error(`Failed to load post by slug (${slug}):`, error);
+    return null;
+  }
 }
 
 export async function getPostById(id: string): Promise<BlogPost | null> {
-  const post = await prisma.post.findUnique({
-    where: { id },
-  });
-  return (post as unknown as BlogPost) || null;
+  try {
+    const post = await prisma.post.findUnique({
+      where: { id },
+    });
+    return post ? (JSON.parse(JSON.stringify(post)) as BlogPost) : null;
+  } catch (error) {
+    console.error(`Failed to load post by id (${id}):`, error);
+    return null;
+  }
 }
 
 export async function getAdjacentPosts(currentPostDate: Date | string) {
@@ -202,16 +230,21 @@ export async function deletePost(id: string): Promise<boolean> {
 // ==========================================
 
 export async function getTimelineEvents(category?: string): Promise<TimelineEvent[]> {
-  const where: Prisma.TimelineEventWhereInput = {};
-  if (category && category !== "all") {
-    where.category = category;
-  }
+  try {
+    const where: Prisma.TimelineEventWhereInput = {};
+    if (category && category !== "all") {
+      where.category = category;
+    }
 
-  const events = await prisma.timelineEvent.findMany({
-    where,
-    orderBy: [{ year: "desc" }, { order: "asc" }],
-  });
-  return events as unknown as TimelineEvent[];
+    const events = await prisma.timelineEvent.findMany({
+      where,
+      orderBy: [{ year: "desc" }, { order: "asc" }],
+    });
+    return events as unknown as TimelineEvent[];
+  } catch (error) {
+    console.error("Failed to load timeline events:", error);
+    return [];
+  }
 }
 
 export async function createTimelineEvent(
@@ -264,16 +297,21 @@ export async function deleteTimelineEvent(id: string): Promise<boolean> {
 // ==========================================
 
 export async function getWorkspaceItems(category?: string): Promise<WorkspaceItem[]> {
-  const where: Prisma.WorkspaceItemWhereInput = {};
-  if (category && category !== "all") {
-    where.category = category;
-  }
+  try {
+    const where: Prisma.WorkspaceItemWhereInput = {};
+    if (category && category !== "all") {
+      where.category = category;
+    }
 
-  const items = await prisma.workspaceItem.findMany({
-    where,
-    orderBy: [{ category: "asc" }, { order: "asc" }],
-  });
-  return items as unknown as WorkspaceItem[];
+    const items = await prisma.workspaceItem.findMany({
+      where,
+      orderBy: [{ category: "asc" }, { order: "asc" }],
+    });
+    return items as unknown as WorkspaceItem[];
+  } catch (error) {
+    console.error("Failed to load workspace items:", error);
+    return [];
+  }
 }
 
 export async function createWorkspaceItem(
@@ -320,10 +358,15 @@ export async function deleteWorkspaceItem(id: string): Promise<boolean> {
 // ==========================================
 
 export async function getCompetencies(): Promise<Competency[]> {
-  const items = await prisma.competency.findMany({
-    orderBy: { order: "asc" },
-  });
-  return items as unknown as Competency[];
+  try {
+    const items = await prisma.competency.findMany({
+      orderBy: { order: "asc" },
+    });
+    return items as unknown as Competency[];
+  } catch (error) {
+    console.error("Failed to load competencies:", error);
+    return [];
+  }
 }
 
 export async function createCompetency(
@@ -364,16 +407,21 @@ export async function deleteCompetency(id: string): Promise<boolean> {
 // ==========================================
 
 export async function getSocialLinks(onlyEnabled = false): Promise<SocialLink[]> {
-  const where: Prisma.SocialLinkWhereInput = {};
-  if (onlyEnabled) {
-    where.isEnabled = true;
-  }
+  try {
+    const where: Prisma.SocialLinkWhereInput = {};
+    if (onlyEnabled) {
+      where.isEnabled = true;
+    }
 
-  const links = await prisma.socialLink.findMany({
-    where,
-    orderBy: { order: "asc" },
-  });
-  return links as unknown as SocialLink[];
+    const links = await prisma.socialLink.findMany({
+      where,
+      orderBy: { order: "asc" },
+    });
+    return links as unknown as SocialLink[];
+  } catch (error) {
+    console.error("Failed to load social links:", error);
+    return [];
+  }
 }
 
 export async function createSocialLink(
@@ -420,12 +468,17 @@ export async function deleteSocialLink(id: string): Promise<boolean> {
 // ==========================================
 
 export async function getSiteSettings(): Promise<SiteSettingsMap> {
-  const settings = await prisma.siteSetting.findMany();
-  const map: SiteSettingsMap = {};
-  for (const s of settings) {
-    (map as Record<string, string>)[s.key] = s.value;
+  try {
+    const settings = await prisma.siteSetting.findMany();
+    const map: SiteSettingsMap = {};
+    for (const s of settings) {
+      (map as Record<string, string>)[s.key] = s.value;
+    }
+    return map;
+  } catch (error) {
+    console.error("Failed to load site settings:", error);
+    return {};
   }
-  return map;
 }
 
 export async function updateSiteSettings(
@@ -449,10 +502,15 @@ export async function updateSiteSettings(
 // ==========================================
 
 export async function getNewsletterSubscribers(): Promise<NewsletterSubscriber[]> {
-  const subscribers = await prisma.newsletterSubscriber.findMany({
-    orderBy: { createdAt: "desc" },
-  });
-  return subscribers as unknown as NewsletterSubscriber[];
+  try {
+    const subscribers = await prisma.newsletterSubscriber.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+    return subscribers as unknown as NewsletterSubscriber[];
+  } catch (error) {
+    console.error("Failed to load newsletter subscribers:", error);
+    return [];
+  }
 }
 
 export async function deleteNewsletterSubscriber(id: string): Promise<boolean> {

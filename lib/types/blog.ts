@@ -83,6 +83,7 @@ export interface SiteSettingsMap {
   author_name?: string;
   author_role?: string;
   author_bio?: string;
+  cal_link?: string;
   smtp_host?: string;
   smtp_port?: string;
   smtp_user?: string;

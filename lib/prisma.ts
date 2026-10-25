@@ -1,28 +1,30 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaNeon } from "@prisma/adapter-neon";
+import { PrismaNeonHttp } from "@prisma/adapter-neon";
 import { neonConfig } from "@neondatabase/serverless";
-import ws from "ws";
 
-// In Node.js, configure WebSocket constructor for Neon; Cloudflare Workers provides native WebSocket
-if (typeof WebSocket === "undefined") {
-  neonConfig.webSocketConstructor = ws;
-}
+// Ensure Neon queries use low-latency HTTP fetch rather than persistent WebSockets
+// This prevents connection drops when Cloudflare Workers/Pages freezes idle serverless isolates
+neonConfig.poolQueryViaFetch = true;
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-function createPrismaClient(): PrismaClient {
-  const rawUrl = process.env.DATABASE_URL || "";
-  // Strip channel_binding=require which is unsupported in serverless WebSocket/HTTP drivers
-  const connectionString = rawUrl
+function cleanConnectionString(url: string): string {
+  if (!url) return "";
+  return url
     .replace("&channel_binding=require", "")
     .replace("?channel_binding=require&", "?")
     .replace("?channel_binding=require", "");
+}
 
-  const adapter = new PrismaNeon({
-    connectionString,
-  });
+function createPrismaClient(): PrismaClient {
+  const rawUrl = process.env.DATABASE_URL || "";
+  const connectionString = cleanConnectionString(rawUrl);
+
+  // PrismaNeonHttp communicates over stateless HTTPS fetch requests
+  // Highly resilient on Cloudflare Edge / Serverless runtimes with zero dependencies on 'ws'
+  const adapter = new PrismaNeonHttp(connectionString, {});
 
   return new PrismaClient({
     adapter,

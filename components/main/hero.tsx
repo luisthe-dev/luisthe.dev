@@ -1,6 +1,6 @@
 import Link from "next/link";
 import React from "react";
-import { BookOpen, Mail, Rss } from "lucide-react";
+import { BookOpen, Mail, Rss, Calendar } from "lucide-react";
 import {
   GithubIcon,
   TwitterIcon,
@@ -123,6 +123,15 @@ const HomeHero: React.FC<HomeHeroProps> = ({ settings, socialLinks }) => {
                 <BookOpen className="w-4 h-4" />
                 <span>Read Blog</span>
               </Link>
+              <a
+                href={settings?.cal_link || "https://cal.com/luisthe-dev"}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 transition-all"
+              >
+                <Calendar className="w-4 h-4" />
+                <span>Book Consultation</span>
+              </a>
               <a
                 href="#newsletter"
                 className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border border-input bg-background hover:bg-accent text-foreground transition-all"

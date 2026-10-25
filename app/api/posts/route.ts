@@ -28,12 +28,13 @@ export async function GET(request: NextRequest) {
       offset,
     });
 
-    return NextResponse.json(data);
-  } catch (error) {
+    return NextResponse.json(data || { posts: [], total: 0 });
+  } catch (error: unknown) {
     console.error("Failed to fetch posts:", error);
+    const msg = error instanceof Error ? error.message : "Failed to fetch posts";
     return NextResponse.json(
-      { error: "Failed to fetch posts" },
-      { status: 500 }
+      { posts: [], total: 0, warning: msg },
+      { status: 200 }
     );
   }
 }

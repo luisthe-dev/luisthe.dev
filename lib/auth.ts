@@ -36,12 +36,10 @@ export function verifySessionToken(token: string): SessionPayload | null {
       .update(payloadStr)
       .digest("base64url");
 
-    if (
-      !crypto.timingSafeEqual(
-        Buffer.from(signature),
-        Buffer.from(expectedSig)
-      )
-    ) {
+    const sigBuf = Buffer.from(signature);
+    const expectedBuf = Buffer.from(expectedSig);
+
+    if (sigBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(sigBuf, expectedBuf)) {
       return null;
     }
 

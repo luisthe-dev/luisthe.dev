@@ -21,9 +21,38 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Divine Adesiyan | Technical Product Manager & Systems Architect",
+  metadataBase: new URL(process.env.NEXTAUTH_URL || "https://luisthe.dev"),
+  title: {
+    default: "Divine Adesiyan | Technical Product Manager & Systems Architect",
+    template: "%s | Divine Adesiyan",
+  },
   description:
     "Founder of Luis Dev Limited, Co-Founder of MyInvite, Senior Backend Engineer. 8+ years building high-throughput microservices, fintech engines, and distributed architectures.",
+  openGraph: {
+    title: "Divine Adesiyan | Technical Product Manager & Systems Architect",
+    description:
+      "Founder of Luis Dev Limited, Co-Founder of MyInvite, Senior Backend Engineer. 8+ years building high-throughput microservices, fintech engines, and distributed architectures.",
+    url: "https://luisthe.dev",
+    siteName: "Divine Adesiyan",
+    locale: "en_US",
+    type: "website",
+    images: [
+      {
+        url: "/24.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Divine Adesiyan | Technical Product Manager & Systems Architect",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Divine Adesiyan | Technical Product Manager & Systems Architect",
+    description:
+      "8+ years building high-throughput microservices, fintech engines, and distributed architectures.",
+    creator: "@luisthe___dev",
+    images: ["/24.jpg"],
+  },
 };
 
 export default async function RootLayout({
